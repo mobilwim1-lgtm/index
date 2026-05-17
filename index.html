@@ -32,20 +32,6 @@
         }
         h1, h2, h3 { text-align: center; color: #111827; margin-top: 0; }
         
-        /* Badge Status Akses */
-        .status-akses-badge {
-            display: block;
-            text-align: center;
-            margin: -10px auto 15px auto;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            width: fit-content;
-        }
-        .akses-admin { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981; }
-        .akses-viewer { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
-
         /* Watermark Styles */
         .app-signature {
             text-align: center;
@@ -73,6 +59,26 @@
             border-top: 1px solid #cbd5e1;
         }
 
+        /* Admin Header Bar */
+        .admin-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-badge.readonly { background: #fee2e2; color: #991b1b; }
+        .status-badge.admin { background: #dcfce7; color: #166534; }
+
         .grid-layout {
             display: grid;
             grid-template-columns: 1.8fr 1.2fr;
@@ -88,6 +94,30 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* Overlay untuk mode read-only */
+        .readonly-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(243, 244, 246, 0.6);
+            backdrop-filter: blur(1px);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+        }
+        .readonly-msg {
+            background: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 12px;
+            font-weight: 600;
+            color: #4b5563;
+            border: 1px solid #e5e7eb;
         }
 
         .controls-header {
@@ -166,25 +196,28 @@
 
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; display: flex; flex-direction: column; }
-        
-        /* Kelas Sembunyi untuk Proteksi Viewer */
-        .admin-only-feature { display: block; }
-        .hidden-feature { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- PROTECTED HEAD VISUAL WATERMARK -->
     <div class="app-signature" id="top-author-watermark">
         🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
     </div>
 
+    <div class="admin-bar">
+        <div>
+            Status Mode: 
+            <span id="status-mode" class="status-badge readonly">Read-Only (Terbatas)</span>
+        </div>
+        <div>
+            <button id="btn-admin-auth" onclick="toggleAdminAuth()" style="background: var(--primary);">Login Admin 🔑</button>
+        </div>
+    </div>
+
     <h1>Sistem Jadwal Shifting Karyawan 2026</h1>
-    <div id="badge-akses" class="status-akses-badge akses-viewer">Mode Meninjau (Read-Only)</div>
     <h3 style="color: #6b7280; margin-top: -10px; margin-bottom: 25px;">Periode Pembatasan: Mei 2026 - Desember 2026</h3>
 
-    <!-- Legend & Dropdown Utama -->
     <div class="card controls-header">
         <div>
             <label for="pilih-karyawan" style="font-size: 16px; margin-right: 10px;"><b>Lihat Jadwal Karyawan:</b></label>
@@ -196,7 +229,6 @@
     </div>
 
     <div class="grid-layout">
-        <!-- Kolom Kiri: Tampilan Kalender -->
         <div class="card">
             <div class="calendar-header">
                 <button id="btn-prev-month" onclick="changeMonth(-1)">◀ Sebelum</button>
@@ -206,10 +238,9 @@
             <div class="calendar-grid" id="calendar-grid"></div>
         </div>
 
-        <!-- Kolom Kanan: Pengaturan Kelola -->
         <div>
-            <!-- Form Input & Edit Data Karyawan -->
-            <div class="card admin-only-feature" id="panel-kelola-karyawan">
+            <div class="card" id="card-kelola-karyawan">
+                <div class="readonly-overlay" id="overlay-karyawan"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
                 <h2 id="form-karyawan-title">Kelola Karyawan</h2>
                 <form id="form-karyawan">
                     <input type="hidden" id="edit-id-karyawan" value="">
@@ -236,7 +267,7 @@
                             <tr>
                                 <th>Nama</th>
                                 <th>Posisi Siklus</th>
-                                <th class="kolom-aksi-admin" style="text-align: center; width: 100px;">Aksi</th>
+                                <th style="text-align: center; width: 100px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabel-kelola-karyawan"></tbody>
@@ -244,8 +275,8 @@
                 </div>
             </div>
 
-            <!-- Form Pengajuan Izin / Tukar Shift / Lembur Pengganti -->
-            <div class="card admin-only-feature" id="panel-input-kegiatan">
+            <div class="card" id="card-kelola-kegiatan">
+                <div class="readonly-overlay" id="overlay-kegiatan"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
                 <h2 id="form-kegiatan-title">Input Izin / Tukar / Lembur</h2>
                 <form id="form-kegiatan">
                     <input type="hidden" id="edit-id-log" value="">
@@ -269,7 +300,6 @@
                         </div>
                     </div>
 
-                    <!-- Panel Opsi Jika Memilih Tukar Shift -->
                     <div id="tukar-opsi" style="display: none;">
                         <label for="shift-baru">Ubah Jadwal Menjadi:</label>
                         <select id="shift-baru">
@@ -280,7 +310,6 @@
                         </select>
                     </div>
 
-                    <!-- PANEL BARU: Khusus untuk Konfigurasi Lembur -->
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
                         <div class="flex-row" style="margin-bottom: 8px;">
                             <div>
@@ -308,8 +337,8 @@
         </div>
     </div>
 
-    <!-- PENGATURAN GLOBAL SHIFT -->
-    <div class="card" id="panel-global-shift-card">
+    <div class="card" id="card-global-shift">
+        <div class="readonly-overlay" id="overlay-global"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
         <h2>⚙️ Pengaturan Global Nama & Jam Kerja Shift</h2>
         <form id="form-global-shift">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
@@ -342,12 +371,11 @@
                     <input type="text" id="g-libur-jam" value="Bebas Tugas" style="width:90%">
                 </div>
             </div>
-            <button id="btn-save-global" type="button" class="btn-submit admin-only-feature" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
+            <button type="button" class="btn-submit" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
         </form>
     </div>
 
-    <!-- TABEL LOG RIWAYAT -->
-    <div class="card">
+    <div class="card" id="card-log-tabel">
         <h2>Riwayat Pengajuan, Tukar Jadwal & Lembur Karyawan</h2>
         <div style="overflow-x: auto;">
             <table>
@@ -357,7 +385,7 @@
                         <th>Karyawan</th>
                         <th>Jenis Pengajuan</th>
                         <th>Detail Jam / Keterangan Perubahan</th>
-                        <th class="kolom-aksi-admin" style="text-align: center; width: 120px;">Aksi</th>
+                        <th class="admin-action-header" style="text-align: center; width: 120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="log-tabel"></tbody>
@@ -365,7 +393,6 @@
         </div>
     </div>
 
-    <!-- PROTECTED FOOTER WATERMARK -->
     <div class="footer-watermark" id="bottom-author-watermark">
         &copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>Rizky SIL 1806</b>. Modifying author identity is strictly prohibited.
     </div>
@@ -376,55 +403,88 @@
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', {
         value: 'Rizky SIL 1806',
-        writable: false,
-        configurable: false
+        writable: false,     // Kunci permanen, tidak bisa ditimpa
+        configurable: false  // Tidak bisa dihapus
     });
-    Object.freeze(PembuatAplikasi);
-
-    // CEK VALIDASI AKSES LINK (ADMIN VS VIEWER)
-    function dapatkanStatusAkses() {
-        const parameterUrl = new URLSearchParams(window.location.search);
-        return parameterUrl.get('role') === 'admin';
-    }
-    const isAdmin = dapatkanStatusAkses();
+    Object.freeze(PembuatAplikasi); // Dibekukan sepenuhnya pada core memori browser runtime
 
     // Fungsi real-time otomatis memulihkan atau memblokir jika kode visual dirusak/di-inspect element
     setInterval(function JagaIntegritas() {
         const topWM = document.getElementById('top-author-watermark');
         const bottomWM = document.getElementById('bottom-author-watermark');
+        const klaimKecurangan = `🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY ${PembuatAplikasi.nama}</span> ALL RIGHTS RESERVED`;
+        const footerKecurangan = `&copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>${PembuatAplikasi.nama}</b>. Modifying author identity is strictly prohibited.`;
+
         if (!topWM || topWM.innerText.indexOf(PembuatAplikasi.nama) === -1) {
-            location.reload();
+            location.reload(); // Paksa reload halaman jika tanda atas hilang
         }
         if (!bottomWM || bottomWM.innerHTML.indexOf(PembuatAplikasi.nama) === -1) {
-            alert("Peringatan Keamanan: Hak Cipta " + PembuatAplikasi.nama + " Bersifat Mutlak!");
+            alert("Peringatan Keamanan: Hak Cipta Rizky SIL 1806 Bersifat Mutlak!");
             document.body.innerHTML = "<h1>Akses Ditutup: Dilarang Keras Memanipulasi Nama Pembuat Sistem Aplikasi!</h1>";
         }
-        // Cegah pembobolan fitur admin lewat console browser
-        if (!isAdmin) {
-            terapkanModePembatasanViewer();
-        }
     }, 3000);
+    // ------------------------------------------------------------------------
 
-    function terapkanModePembatasanViewer() {
-        document.getElementById('badge-akses').innerText = "Mode Meninjau (Read-Only)";
-        document.getElementById('badge-akses').className = "status-akses-badge akses-viewer";
-        
-        // Sembunyikan panel form input
-        document.getElementById('panel-kelola-karyawan').classList.add('hidden-feature');
-        document.getElementById('panel-input-kegiatan').classList.add('hidden-feature');
-        document.getElementById('btn-save-global').classList.add('hidden-feature');
-        
-        // Kunci input nama global shift agar tidak bisa diketik
-        document.querySelectorAll('#form-global-shift input').forEach(input => input.disabled = true);
+    // --- SISTEM OTENTIKASI & PROTEKSI READ-ONLY GITHUB PAGES ---
+    let isAdmin = false;
+    const PASSWORD_ADMIN = "admin123"; // Silakan ganti password default di sini
 
-        // Sembunyikan kolom aksi pada tabel-tabel
-        document.querySelectorAll('.kolom-aksi-admin').forEach(el => el.classList.add('hidden-feature'));
-        document.querySelectorAll('.action-buttons').forEach(el => el.classList.add('hidden-feature'));
+    function updateUIMode() {
+        const statusMode = document.getElementById('status-mode');
+        const btnAdmin = document.getElementById('btn-admin-auth');
+        const overlayKaryawan = document.getElementById('overlay-karyawan');
+        const overlayKegiatan = document.getElementById('overlay-kegiatan');
+        const overlayGlobal = document.getElementById('overlay-global');
+        const actionHeaders = document.querySelectorAll('.admin-action-header');
+
+        if (isAdmin) {
+            statusMode.innerText = "Mode Admin (Akses Penuh)";
+            statusMode.className = "status-badge admin";
+            btnAdmin.innerText = "Logout Admin 🔓";
+            btnAdmin.style.background = var(--danger);
+            
+            // Sembunyikan overlay proteksi
+            overlayKaryawan.style.display = "none";
+            overlayKegiatan.style.display = "none";
+            overlayGlobal.style.display = "none";
+        } else {
+            statusMode.innerText = "Read-Only (Terbatas)";
+            statusMode.className = "status-badge readonly";
+            btnAdmin.innerText = "Login Admin 🔑";
+            btnAdmin.style.background = var(--primary);
+            
+            // Tampilkan overlay proteksi namun form tetap terlihat di belakangnya
+            overlayKaryawan.style.display = "flex";
+            overlayKegiatan.style.display = "flex";
+            overlayGlobal.style.display = "flex";
+        }
+        // Render ulang log untuk menyembunyikan/menampilkan tombol aksi internal tabel
+        renderLog();
+        updateKomponenKaryawan();
     }
 
-    function terapkanModeAksesAdmin() {
-        document.getElementById('badge-akses').innerText = "Mode Pemilik (Akses Penuh Admin)";
-        document.getElementById('badge-akses').className = "status-akses-badge akses-admin";
+    function toggleAdminAuth() {
+        if (isAdmin) {
+            isAdmin = false;
+            sessionStorage.removeItem('roster_admin_logged');
+            alert("Anda telah keluar dari Mode Admin. Sekarang kembali ke mode Read-Only.");
+            updateUIMode();
+        } else {
+            const passInput = prompt("Masukkan Kata Sandi Admin untuk Mengaktifkan Fitur Kelola:");
+            if (passInput === PASSWORD_ADMIN) {
+                isAdmin = true;
+                sessionStorage.setItem('roster_admin_logged', 'true');
+                alert("Otentikasi Berhasil! Mode Admin Aktif.");
+                updateUIMode();
+            } else if (passInput !== null) {
+                alert("Kata Sandi Salah! Akses Modifikasi Ditolak.");
+            }
+        }
+    }
+
+    // Cek status login saat halaman di-reload (opsional menggunakan sessionStorage)
+    if (sessionStorage.getItem('roster_admin_logged') === 'true') {
+        isAdmin = true;
     }
     // ------------------------------------------------------------------------
 
@@ -494,7 +554,7 @@
     }
 
     function simpanPengaturanGlobal() {
-        if(!isAdmin) return alert("Akses ditolak!");
+        if (!isAdmin) return;
         configShift.Pagi.nama = document.getElementById('g-pagi-nama').value;
         configShift.Pagi.jam = document.getElementById('g-pagi-jam').value;
         configShift.Sore.nama = document.getElementById('g-sore-nama').value;
@@ -531,13 +591,19 @@
 
             let teksSiklus = k.urutanPola==0?"Pagi ke-1":k.urutanPola==2?"Sore ke-1":k.urutanPola==4?"Malam ke-1":"Libur ke-1";
             let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${k.nama}</b></td>
-                <td><span style="font-size:11px; background:#f3f4f6; padding:2px 6px; border-radius:4px;">${teksSiklus}</span></td>
-                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
+            
+            // Sembunyikan atau tampilkan tombol aksi berdasarkan status admin
+            let tombolAksi = isAdmin ? `
+                <td class="action-buttons">
                     <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
                 </td>
+            ` : `<td style="text-align:center; color:#9ca3af;">Terpuji</td>`;
+
+            tr.innerHTML = `
+                <td><b>${k.nama}</b></td>
+                <td><span style="font-size:11px; background:#f3f4f6; padding:2px 6px; border-radius:4px;">${teksSiklus}</span></td>
+                ${tombolAksi}
             `;
             tabelKelola.appendChild(tr);
         });
@@ -547,7 +613,6 @@
     function sinkronisasiOpsiLembur() {
         const idKaryawanLembur = document.getElementById('input-karyawan').value;
         const dropdownGanti = document.getElementById('lembur-gantikan-siapa');
-        if(!dropdownGanti) return;
         dropdownGanti.innerHTML = '<option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>';
         
         listKaryawan.forEach(k => {
@@ -561,7 +626,7 @@
     }
 
     function pemicuEditKaryawan(id, nama, urutanPola) {
-        if(!isAdmin) return;
+        if (!isAdmin) return;
         document.getElementById('edit-id-karyawan').value = id;
         document.getElementById('nama-baru').value = nama;
         document.getElementById('pola-start').value = urutanPola;
@@ -581,7 +646,7 @@
     }
 
     function hapusKaryawan(id) {
-        if(!isAdmin) return;
+        if (!isAdmin) return;
         const karyawan = listKaryawan.find(k => k.id === id);
         if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua riwayat izin & lembur juga akan dibersihkan.`)) {
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
@@ -678,7 +743,7 @@
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault();
-        if(!isAdmin) return alert("Akses ditolak!");
+        if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
         const urutanPola = document.getElementById('pola-start').value;
         const editId = document.getElementById('edit-id-karyawan').value;
@@ -698,7 +763,7 @@
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
         e.preventDefault();
-        if(!isAdmin) return alert("Akses ditolak!");
+        if (!isAdmin) return;
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
         const tanggal = document.getElementById('tanggal').value;
@@ -756,7 +821,7 @@
                 namaKaryawan: user.nama,
                 jenis: jenis,
                 tanggal: tanggal,
-                statusShift: statusFinal,
+                statusShift = statusFinal,
                 info: infoTeks,
                 gantiKaryawanId: gantiKaryawanId,
                 jamStart: jamStart,
@@ -777,7 +842,7 @@
     });
 
     function pemicuEditKegiatan(id) {
-        if(!isAdmin) return;
+        if (!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
         if (!item) return;
 
@@ -821,7 +886,7 @@
     }
 
     function hapusKegiatan(id) {
-        if(!isAdmin) return;
+        if (!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
         if (item && confirm(`Batalkan agenda ${item.jenis} untuk ${item.namaKaryawan} pada tanggal ${item.tanggal}?`)) {
             const user = listKaryawan.find(k => k.id === item.karyawanId);
@@ -837,37 +902,46 @@
 
     function renderLog() {
         const tbody = document.getElementById('log-tabel');
+        const headerAksi = document.querySelector('.admin-action-header');
         tbody.innerHTML = '';
+        
+        if (!headerAksi) return;
+
+        if (isAdmin) {
+            headerAksi.style.display = "table-cell";
+        } else {
+            headerAksi.style.display = "none";
+        }
+
         if(logPengajuan.length === 0){
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9ca3af;">Belum ada riwayat aktivitas manual</td></tr>';
+            tbody.innerHTML = `<tr><td colspan="${isAdmin ? 5 : 4}" style="text-align:center; color:#9ca3af;">Belum ada riwayat aktivitas manual</td></tr>`;
             return;
         }
         logPengajuan.forEach(item => {
             let badgeBg = item.jenis==='Lembur'?'var(--lembur)':item.jenis==='Tukar'?'#e5e7eb':item.jenis==='Cuti'?'var(--cuti)':'var(--sakit)';
             let colorText = item.jenis==='Lembur'?'#111827':'inherit';
             const tr = document.createElement('tr');
+            
+            let tombolAksiLog = isAdmin ? `
+                <td class="action-buttons">
+                    <button class="btn-warning" onclick="pemicuEditKegiatan('${item.id}')">Edit</button>
+                    <button class="btn-danger" onclick="hapusKegiatan('${item.id}')">Hapus</button>
+                </td>
+            ` : '';
+
             tr.innerHTML = `
                 <td><b>${item.tanggal}</b></td>
                 <td>${item.namaKaryawan}</td>
                 <td><span style="padding:2px 6px; border-radius:4px; font-weight:bold; background:${badgeBg}; color:${colorText}; font-size:11px;">${item.jenis}</span></td>
                 <td>${item.info}</td>
-                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
-                    <button class="btn-warning" onclick="pemicuEditKegiatan('${item.id}')">Edit</button>
-                    <button class="btn-danger" onclick="hapusKegiatan('${item.id}')">Hapus</button>
-                </td>
+                ${tombolAksiLog}
             `;
             tbody.appendChild(tr);
         });
     }
 
-    // Eksekusi inisialisasi awal pembatasan akses
-    if (isAdmin) {
-        terapkanModeAksesAdmin();
-    } else {
-        terapkanModePembatasanViewer();
-    }
-
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+    // Eksekusi inisiasi awal
+    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
 </script>
 
 </body>
