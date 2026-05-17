@@ -97,7 +97,7 @@
             position: relative;
         }
 
-        /* Overlay Proteksi Blokir Form */
+        /* Overlay Proteksi Khusus Blokir Form */
         .readonly-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -276,7 +276,6 @@
             </div>
 
             <div class="card" id="card-kelola-kegiatan">
-                <div class="readonly-overlay" id="overlay-kegiatan"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
                 <h2 id="form-kegiatan-title">Input Izin / Tukar / Lembur</h2>
                 <form id="form-kegiatan">
                     <input type="hidden" id="edit-id-log" value="">
@@ -416,13 +415,12 @@
     // -------------------------------------------------------------
 
     let isAdmin = false;
-    const PASSWORD_ADMIN = "admin123"; // Kata sandi otentikasi sesuai permintaan
+    const PASSWORD_ADMIN = "admin123";
 
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
         const btnAdmin = document.getElementById('btn-admin-auth');
         const overlayKaryawan = document.getElementById('overlay-karyawan');
-        const overlayKegiatan = document.getElementById('overlay-kegiatan');
         const overlayGlobal = document.getElementById('overlay-global');
         const headersAksiTabel = document.querySelectorAll('.admin-action-header');
         const headerAksiLog = document.querySelector('.admin-action-header-log');
@@ -433,9 +431,8 @@
             btnAdmin.innerText = "Logout Admin 🔓";
             btnAdmin.style.background = "var(--danger)";
             
-            // Sembunyikan lapisan kunci (form bisa diakses)
+            // Membuka kunci panel khusus admin
             overlayKaryawan.style.display = "none";
-            overlayKegiatan.style.display = "none";
             overlayGlobal.style.display = "none";
             
             headersAksiTabel.forEach(h => h.style.display = "table-cell");
@@ -446,11 +443,11 @@
             btnAdmin.innerText = "Login Admin 🔑";
             btnAdmin.style.background = "var(--primary)";
             
-            // Tampilkan lapisan kunci gembok visual (form tetap terlihat tapi terblokir)
+            // Mengunci panel kelola karyawan dan config global
             overlayKaryawan.style.display = "flex";
-            overlayKegiatan.style.display = "flex";
             overlayGlobal.style.display = "flex";
             
+            // Menyembunyikan tombol edit/hapus log untuk user biasa
             headersAksiTabel.forEach(h => h.style.display = "none");
             if(headerAksiLog) headerAksiLog.style.display = "none";
         }
@@ -462,17 +459,17 @@
         if (isAdmin) {
             isAdmin = false;
             sessionStorage.removeItem('roster_admin_logged');
-            alert("Keluar dari sistem admin. Kembali ke Mode Meninjau (Read-Only).");
+            alert("Keluar dari sistem admin. Kembali ke Mode Meninjau.");
             updateUIMode();
         } else {
-            const passInput = prompt("Masukkan Kata Sandi Admin untuk Mengaktifkan Fitur Modifikasi:");
+            const passInput = prompt("Masukkan Kata Sandi Admin:");
             if (passInput === PASSWORD_ADMIN) {
                 isAdmin = true;
                 sessionStorage.setItem('roster_admin_logged', 'true');
-                alert("Akses Admin Diterima! Lapisan gembok form dibuka.");
+                alert("Akses Admin Diterima! Fitur manajemen internal dibuka.");
                 updateUIMode();
             } else if (passInput !== null) {
-                alert("Kata Sandi Salah! Gagal masuk ke mode admin.");
+                alert("Kata Sandi Salah!");
             }
         }
     }
@@ -748,7 +745,7 @@
     });
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
-        e.preventDefault(); if (!isAdmin) return;
+        e.preventDefault(); // Bisa diakses publik tanpa validasi isAdmin
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
         const tanggal = document.getElementById('tanggal').value;
@@ -776,6 +773,8 @@
         }
 
         if (editLogId) {
+            // Edit log riwayat modifikasi tetap diamankan hanya untuk admin jika sedang mode edit
+            if (!isAdmin) { alert("Maaf, mengedit log yang sudah masuk membutuhkan hak akses Admin."); return; }
             const dataLama = logPengajuan.find(item => item.id === editLogId);
             if (dataLama) {
                 const userLama = listKaryawan.find(k => k.id === dataLama.karyawanId);
@@ -804,6 +803,7 @@
 
         saveData(); renderCalendar(); renderLog();
         document.getElementById('form-kegiatan').reset(); toggleFormPilihan();
+        alert("Data berhasil tersimpan ke kalender!");
     });
 
     function pemicuEditKegiatan(id) {
