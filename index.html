@@ -32,6 +32,20 @@
         }
         h1, h2, h3 { text-align: center; color: #111827; margin-top: 0; }
         
+        /* Badge Status Akses */
+        .status-akses-badge {
+            display: block;
+            text-align: center;
+            margin: -10px auto 15px auto;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            width: fit-content;
+        }
+        .akses-admin { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .akses-viewer { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+
         /* Watermark Styles */
         .app-signature {
             text-align: center;
@@ -152,6 +166,10 @@
 
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; display: flex; flex-direction: column; }
+        
+        /* Kelas Sembunyi untuk Proteksi Viewer */
+        .admin-only-feature { display: block; }
+        .hidden-feature { display: none !important; }
     </style>
 </head>
 <body>
@@ -163,6 +181,7 @@
     </div>
 
     <h1>Sistem Jadwal Shifting Karyawan 2026</h1>
+    <div id="badge-akses" class="status-akses-badge akses-viewer">Mode Meninjau (Read-Only)</div>
     <h3 style="color: #6b7280; margin-top: -10px; margin-bottom: 25px;">Periode Pembatasan: Mei 2026 - Desember 2026</h3>
 
     <!-- Legend & Dropdown Utama -->
@@ -190,7 +209,7 @@
         <!-- Kolom Kanan: Pengaturan Kelola -->
         <div>
             <!-- Form Input & Edit Data Karyawan -->
-            <div class="card">
+            <div class="card admin-only-feature" id="panel-kelola-karyawan">
                 <h2 id="form-karyawan-title">Kelola Karyawan</h2>
                 <form id="form-karyawan">
                     <input type="hidden" id="edit-id-karyawan" value="">
@@ -217,7 +236,7 @@
                             <tr>
                                 <th>Nama</th>
                                 <th>Posisi Siklus</th>
-                                <th style="text-align: center; width: 100px;">Aksi</th>
+                                <th class="kolom-aksi-admin" style="text-align: center; width: 100px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabel-kelola-karyawan"></tbody>
@@ -226,7 +245,7 @@
             </div>
 
             <!-- Form Pengajuan Izin / Tukar Shift / Lembur Pengganti -->
-            <div class="card">
+            <div class="card admin-only-feature" id="panel-input-kegiatan">
                 <h2 id="form-kegiatan-title">Input Izin / Tukar / Lembur</h2>
                 <form id="form-kegiatan">
                     <input type="hidden" id="edit-id-log" value="">
@@ -290,7 +309,7 @@
     </div>
 
     <!-- PENGATURAN GLOBAL SHIFT -->
-    <div class="card">
+    <div class="card" id="panel-global-shift-card">
         <h2>⚙️ Pengaturan Global Nama & Jam Kerja Shift</h2>
         <form id="form-global-shift">
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
@@ -323,7 +342,7 @@
                     <input type="text" id="g-libur-jam" value="Bebas Tugas" style="width:90%">
                 </div>
             </div>
-            <button type="button" class="btn-submit" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
+            <button id="btn-save-global" type="button" class="btn-submit admin-only-feature" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
         </form>
     </div>
 
@@ -338,7 +357,7 @@
                         <th>Karyawan</th>
                         <th>Jenis Pengajuan</th>
                         <th>Detail Jam / Keterangan Perubahan</th>
-                        <th style="text-align: center; width: 120px;">Aksi</th>
+                        <th class="kolom-aksi-admin" style="text-align: center; width: 120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="log-tabel"></tbody>
@@ -357,26 +376,56 @@
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', {
         value: 'Rizky SIL 1806',
-        writable: false,     // Kunci permanen, tidak bisa ditimpa
-        configurable: false  // Tidak bisa dihapus
+        writable: false,
+        configurable: false
     });
-    Object.freeze(PembuatAplikasi); // Dibekukan sepenuhnya pada core memori browser runtime
+    Object.freeze(PembuatAplikasi);
+
+    // CEK VALIDASI AKSES LINK (ADMIN VS VIEWER)
+    function dapatkanStatusAkses() {
+        const parameterUrl = new URLSearchParams(window.location.search);
+        return parameterUrl.get('role') === 'admin';
+    }
+    const isAdmin = dapatkanStatusAkses();
 
     // Fungsi real-time otomatis memulihkan atau memblokir jika kode visual dirusak/di-inspect element
     setInterval(function JagaIntegritas() {
         const topWM = document.getElementById('top-author-watermark');
         const bottomWM = document.getElementById('bottom-author-watermark');
-        const klaimKecurangan = `🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY ${PembuatAplikasi.nama}</span> ALL RIGHTS RESERVED`;
-        const footerKecurangan = `&copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>${PembuatAplikasi.nama}</b>. Modifying author identity is strictly prohibited.`;
-
         if (!topWM || topWM.innerText.indexOf(PembuatAplikasi.nama) === -1) {
-            location.reload(); // Paksa reload halaman jika tanda atas hilang
+            location.reload();
         }
         if (!bottomWM || bottomWM.innerHTML.indexOf(PembuatAplikasi.nama) === -1) {
-            alert("Peringatan Keamanan: Hak Cipta Rizky SIL 1806 Bersifat Mutlak!");
+            alert("Peringatan Keamanan: Hak Cipta " + PembuatAplikasi.nama + " Bersifat Mutlak!");
             document.body.innerHTML = "<h1>Akses Ditutup: Dilarang Keras Memanipulasi Nama Pembuat Sistem Aplikasi!</h1>";
         }
+        // Cegah pembobolan fitur admin lewat console browser
+        if (!isAdmin) {
+            terapkanModePembatasanViewer();
+        }
     }, 3000);
+
+    function terapkanModePembatasanViewer() {
+        document.getElementById('badge-akses').innerText = "Mode Meninjau (Read-Only)";
+        document.getElementById('badge-akses').className = "status-akses-badge akses-viewer";
+        
+        // Sembunyikan panel form input
+        document.getElementById('panel-kelola-karyawan').classList.add('hidden-feature');
+        document.getElementById('panel-input-kegiatan').classList.add('hidden-feature');
+        document.getElementById('btn-save-global').classList.add('hidden-feature');
+        
+        // Kunci input nama global shift agar tidak bisa diketik
+        document.querySelectorAll('#form-global-shift input').forEach(input => input.disabled = true);
+
+        // Sembunyikan kolom aksi pada tabel-tabel
+        document.querySelectorAll('.kolom-aksi-admin').forEach(el => el.classList.add('hidden-feature'));
+        document.querySelectorAll('.action-buttons').forEach(el => el.classList.add('hidden-feature'));
+    }
+
+    function terapkanModeAksesAdmin() {
+        document.getElementById('badge-akses').innerText = "Mode Pemilik (Akses Penuh Admin)";
+        document.getElementById('badge-akses').className = "status-akses-badge akses-admin";
+    }
     // ------------------------------------------------------------------------
 
     let currentDate = new Date(2026, 4, 1);
@@ -445,6 +494,7 @@
     }
 
     function simpanPengaturanGlobal() {
+        if(!isAdmin) return alert("Akses ditolak!");
         configShift.Pagi.nama = document.getElementById('g-pagi-nama').value;
         configShift.Pagi.jam = document.getElementById('g-pagi-jam').value;
         configShift.Sore.nama = document.getElementById('g-sore-nama').value;
@@ -484,7 +534,7 @@
             tr.innerHTML = `
                 <td><b>${k.nama}</b></td>
                 <td><span style="font-size:11px; background:#f3f4f6; padding:2px 6px; border-radius:4px;">${teksSiklus}</span></td>
-                <td class="action-buttons">
+                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
                     <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
                 </td>
@@ -497,6 +547,7 @@
     function sinkronisasiOpsiLembur() {
         const idKaryawanLembur = document.getElementById('input-karyawan').value;
         const dropdownGanti = document.getElementById('lembur-gantikan-siapa');
+        if(!dropdownGanti) return;
         dropdownGanti.innerHTML = '<option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>';
         
         listKaryawan.forEach(k => {
@@ -510,6 +561,7 @@
     }
 
     function pemicuEditKaryawan(id, nama, urutanPola) {
+        if(!isAdmin) return;
         document.getElementById('edit-id-karyawan').value = id;
         document.getElementById('nama-baru').value = nama;
         document.getElementById('pola-start').value = urutanPola;
@@ -529,6 +581,7 @@
     }
 
     function hapusKaryawan(id) {
+        if(!isAdmin) return;
         const karyawan = listKaryawan.find(k => k.id === id);
         if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua riwayat izin & lembur juga akan dibersihkan.`)) {
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
@@ -625,6 +678,7 @@
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault();
+        if(!isAdmin) return alert("Akses ditolak!");
         const nama = document.getElementById('nama-baru').value;
         const urutanPola = document.getElementById('pola-start').value;
         const editId = document.getElementById('edit-id-karyawan').value;
@@ -644,6 +698,7 @@
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
         e.preventDefault();
+        if(!isAdmin) return alert("Akses ditolak!");
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
         const tanggal = document.getElementById('tanggal').value;
@@ -722,6 +777,7 @@
     });
 
     function pemicuEditKegiatan(id) {
+        if(!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
         if (!item) return;
 
@@ -765,6 +821,7 @@
     }
 
     function hapusKegiatan(id) {
+        if(!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
         if (item && confirm(`Batalkan agenda ${item.jenis} untuk ${item.namaKaryawan} pada tanggal ${item.tanggal}?`)) {
             const user = listKaryawan.find(k => k.id === item.karyawanId);
@@ -794,13 +851,20 @@
                 <td>${item.namaKaryawan}</td>
                 <td><span style="padding:2px 6px; border-radius:4px; font-weight:bold; background:${badgeBg}; color:${colorText}; font-size:11px;">${item.jenis}</span></td>
                 <td>${item.info}</td>
-                <td class="action-buttons">
+                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
                     <button class="btn-warning" onclick="pemicuEditKegiatan('${item.id}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKegiatan('${item.id}')">Hapus</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // Eksekusi inisialisasi awal pembatasan akses
+    if (isAdmin) {
+        terapkanModeAksesAdmin();
+    } else {
+        terapkanModePembatasanViewer();
     }
 
     muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog();
