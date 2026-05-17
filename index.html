@@ -97,7 +97,7 @@
             position: relative;
         }
 
-        /* Overlay untuk mode read-only */
+        /* Overlay Proteksi Blokir Form */
         .readonly-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -207,11 +207,11 @@
 
     <div class="admin-bar">
         <div>
-            Status Mode: 
-            <span id="status-mode" class="status-badge readonly">Read-Only (Terbatas)</span>
+            Status Aplikasi: 
+            <span id="status-mode" class="status-badge readonly">Read-Only (Meninjau Jadwal)</span>
         </div>
         <div>
-            <button id="btn-admin-auth" onclick="toggleAdminAuth()" style="background: var(--primary);">Login Admin 🔑</button>
+            <button id="btn-admin-auth" onclick="toggleAdminAuth()">Login Admin 🔑</button>
         </div>
     </div>
 
@@ -267,7 +267,7 @@
                             <tr>
                                 <th>Nama</th>
                                 <th>Posisi Siklus</th>
-                                <th style="text-align: center; width: 100px;">Aksi</th>
+                                <th style="text-align: center; width: 100px;" class="admin-action-header">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabel-kelola-karyawan"></tbody>
@@ -328,7 +328,7 @@
                     </div>
 
                     <label for="keterangan">Keterangan Tambahan / Alasan:</label>
-                    <input type="text" id="keterangan" placeholder="Contoh: Gantikan cuti Rulli / Lembur volume padat" required>
+                    <input type="text" id="keterangan" placeholder="Contoh: Gantikan cuti Rulli" required>
 
                     <button type="submit" id="btn-submit-kegiatan" class="btn-submit">Simpan ke Kalender</button>
                     <button type="button" id="btn-batal-kegiatan" class="btn-cancel" style="display:none;" onclick="cancelEditKegiatan()">Batal Perubahan</button>
@@ -385,7 +385,7 @@
                         <th>Karyawan</th>
                         <th>Jenis Pengajuan</th>
                         <th>Detail Jam / Keterangan Perubahan</th>
-                        <th class="admin-action-header" style="text-align: center; width: 120px;">Aksi</th>
+                        <th class="admin-action-header-log" style="text-align: center; width: 120px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="log-tabel"></tbody>
@@ -399,35 +399,24 @@
 </div>
 
 <script>
-    // --- SKRIP PERMANEN KUNCI HAK CIPTA (ANTI-TAMPER & ANTI-REPLACEMENT) ---
+    // --- SKRIP INTEGRITAS SECURITY HAK CIPTA ---
     const PembuatAplikasi = {};
-    Object.defineProperty(PembuatAplikasi, 'nama', {
-        value: 'Rizky SIL 1806',
-        writable: false,     // Kunci permanen, tidak bisa ditimpa
-        configurable: false  // Tidak bisa dihapus
-    });
-    Object.freeze(PembuatAplikasi); // Dibekukan sepenuhnya pada core memori browser runtime
+    Object.defineProperty(PembuatAplikasi, 'nama', { value: 'Rizky SIL 1806', writable: false, configurable: false });
+    Object.freeze(PembuatAplikasi);
 
-    // Fungsi real-time otomatis memulihkan atau memblokir jika kode visual dirusak/di-inspect element
     setInterval(function JagaIntegritas() {
         const topWM = document.getElementById('top-author-watermark');
         const bottomWM = document.getElementById('bottom-author-watermark');
-        const klaimKecurangan = `🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY ${PembuatAplikasi.nama}</span> ALL RIGHTS RESERVED`;
-        const footerKecurangan = `&copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>${PembuatAplikasi.nama}</b>. Modifying author identity is strictly prohibited.`;
-
-        if (!topWM || topWM.innerText.indexOf(PembuatAplikasi.nama) === -1) {
-            location.reload(); // Paksa reload halaman jika tanda atas hilang
-        }
+        if (!topWM || topWM.innerText.indexOf(PembuatAplikasi.nama) === -1) { location.reload(); }
         if (!bottomWM || bottomWM.innerHTML.indexOf(PembuatAplikasi.nama) === -1) {
             alert("Peringatan Keamanan: Hak Cipta Rizky SIL 1806 Bersifat Mutlak!");
             document.body.innerHTML = "<h1>Akses Ditutup: Dilarang Keras Memanipulasi Nama Pembuat Sistem Aplikasi!</h1>";
         }
     }, 3000);
-    // ------------------------------------------------------------------------
+    // -------------------------------------------------------------
 
-    // --- SISTEM OTENTIKASI & PROTEKSI READ-ONLY GITHUB PAGES ---
     let isAdmin = false;
-    const PASSWORD_ADMIN = "admin123"; // Silakan ganti password default di sini
+    const PASSWORD_ADMIN = "admin123"; // Kata sandi otentikasi sesuai permintaan
 
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
@@ -435,30 +424,36 @@
         const overlayKaryawan = document.getElementById('overlay-karyawan');
         const overlayKegiatan = document.getElementById('overlay-kegiatan');
         const overlayGlobal = document.getElementById('overlay-global');
-        const actionHeaders = document.querySelectorAll('.admin-action-header');
+        const headersAksiTabel = document.querySelectorAll('.admin-action-header');
+        const headerAksiLog = document.querySelector('.admin-action-header-log');
 
         if (isAdmin) {
             statusMode.innerText = "Mode Admin (Akses Penuh)";
             statusMode.className = "status-badge admin";
             btnAdmin.innerText = "Logout Admin 🔓";
-            btnAdmin.style.background = var(--danger);
+            btnAdmin.style.background = "var(--danger)";
             
-            // Sembunyikan overlay proteksi
+            // Sembunyikan lapisan kunci (form bisa diakses)
             overlayKaryawan.style.display = "none";
             overlayKegiatan.style.display = "none";
             overlayGlobal.style.display = "none";
+            
+            headersAksiTabel.forEach(h => h.style.display = "table-cell");
+            if(headerAksiLog) headerAksiLog.style.display = "table-cell";
         } else {
-            statusMode.innerText = "Read-Only (Terbatas)";
+            statusMode.innerText = "Mode Meninjau (Read-Only)";
             statusMode.className = "status-badge readonly";
             btnAdmin.innerText = "Login Admin 🔑";
-            btnAdmin.style.background = var(--primary);
+            btnAdmin.style.background = "var(--primary)";
             
-            // Tampilkan overlay proteksi namun form tetap terlihat di belakangnya
+            // Tampilkan lapisan kunci gembok visual (form tetap terlihat tapi terblokir)
             overlayKaryawan.style.display = "flex";
             overlayKegiatan.style.display = "flex";
             overlayGlobal.style.display = "flex";
+            
+            headersAksiTabel.forEach(h => h.style.display = "none");
+            if(headerAksiLog) headerAksiLog.style.display = "none";
         }
-        // Render ulang log untuk menyembunyikan/menampilkan tombol aksi internal tabel
         renderLog();
         updateKomponenKaryawan();
     }
@@ -467,26 +462,22 @@
         if (isAdmin) {
             isAdmin = false;
             sessionStorage.removeItem('roster_admin_logged');
-            alert("Anda telah keluar dari Mode Admin. Sekarang kembali ke mode Read-Only.");
+            alert("Keluar dari sistem admin. Kembali ke Mode Meninjau (Read-Only).");
             updateUIMode();
         } else {
-            const passInput = prompt("Masukkan Kata Sandi Admin untuk Mengaktifkan Fitur Kelola:");
+            const passInput = prompt("Masukkan Kata Sandi Admin untuk Mengaktifkan Fitur Modifikasi:");
             if (passInput === PASSWORD_ADMIN) {
                 isAdmin = true;
                 sessionStorage.setItem('roster_admin_logged', 'true');
-                alert("Otentikasi Berhasil! Mode Admin Aktif.");
+                alert("Akses Admin Diterima! Lapisan gembok form dibuka.");
                 updateUIMode();
             } else if (passInput !== null) {
-                alert("Kata Sandi Salah! Akses Modifikasi Ditolak.");
+                alert("Kata Sandi Salah! Gagal masuk ke mode admin.");
             }
         }
     }
 
-    // Cek status login saat halaman di-reload (opsional menggunakan sessionStorage)
-    if (sessionStorage.getItem('roster_admin_logged') === 'true') {
-        isAdmin = true;
-    }
-    // ------------------------------------------------------------------------
+    if (sessionStorage.getItem('roster_admin_logged') === 'true') { isAdmin = true; }
 
     let currentDate = new Date(2026, 4, 1);
     const anchorDate = new Date(2026, 4, 17);
@@ -538,7 +529,7 @@
             <div class="legend-item"><div class="color-box" style="background: var(--libur)"></div> ${configShift.Libur.nama}</div>
             <div class="legend-item"><div class="color-box" style="background: var(--cuti)"></div> Cuti</div>
             <div class="legend-item"><div class="color-box" style="background: var(--sakit)"></div> Sakit</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--lembur)"></div> Lembur Kerja</div>
+            <div class="legend-item"><div class="color-box" style="background: var(--lembur)"></div> Lembur</div>
         `;
     }
 
@@ -592,13 +583,12 @@
             let teksSiklus = k.urutanPola==0?"Pagi ke-1":k.urutanPola==2?"Sore ke-1":k.urutanPola==4?"Malam ke-1":"Libur ke-1";
             let tr = document.createElement('tr');
             
-            // Sembunyikan atau tampilkan tombol aksi berdasarkan status admin
             let tombolAksi = isAdmin ? `
                 <td class="action-buttons">
                     <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
                 </td>
-            ` : `<td style="text-align:center; color:#9ca3af;">Terpuji</td>`;
+            ` : '';
 
             tr.innerHTML = `
                 <td><b>${k.nama}</b></td>
@@ -618,8 +608,7 @@
         listKaryawan.forEach(k => {
             if(k.id !== idKaryawanLembur) {
                 let opt = document.createElement('option');
-                opt.value = k.id;
-                opt.innerText = `Gantikan: ${k.nama}`;
+                opt.value = k.id; opt.innerText = `Gantikan: ${k.nama}`;
                 dropdownGanti.appendChild(opt);
             }
         });
@@ -648,12 +637,11 @@
     function hapusKaryawan(id) {
         if (!isAdmin) return;
         const karyawan = listKaryawan.find(k => k.id === id);
-        if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua riwayat izin & lembur juga akan dibersihkan.`)) {
+        if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua data ikut terhapus.`)) {
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
             listKaryawan = listKaryawan.filter(k => k.id !== id);
             if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            if(document.getElementById('edit-id-karyawan').value === id) cancelEditKaryawan();
-            saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
         }
     }
 
@@ -705,13 +693,12 @@
             else if (tipeShiftId === 'Cuti') { bgColor = 'var(--cuti)'; statusText = "Cuti Tahunan"; jamText = "Izin Resmi"; }
             else if (tipeShiftId === 'Sakit') { bgColor = 'var(--sakit)'; statusText = "Sakit / Absen"; jamText = "Surat Dokter"; }
             else if (tipeShiftId === 'Lembur') { 
-                bgColor = 'var(--lembur)'; 
-                statusText = "⚡ LEMBUR KERJA"; 
-                jamText = user.infoLembur && user.infoLembur[stringTanggal] ? user.infoLembur[stringTanggal] : "Jam Kerja Ekstra";
+                bgColor = 'var(--lembur)'; statusText = "⚡ LEMBUR"; 
+                jamText = user.infoLembur && user.infoLembur[stringTanggal] ? user.infoLembur[stringTanggal] : "Jam Ekstra";
             }
 
             cell.style.backgroundColor = bgColor;
-            if(stringTanggal === "2026-05-17") cell.style.cssText += "border: 2px dashed #4f46e5; box-shadow: inset 0 0 8px rgba(0,0,0,0.25);";
+            if(stringTanggal === "2026-05-17") cell.style.cssText += "border: 2px dashed #4f46e5; box-shadow: inset 0 0 8px rgba(0,0,0,0.15);";
 
             cell.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -742,8 +729,7 @@
     }
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (!isAdmin) return;
+        e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
         const urutanPola = document.getElementById('pola-start').value;
         const editId = document.getElementById('edit-id-karyawan').value;
@@ -762,19 +748,17 @@
     });
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (!isAdmin) return;
+        e.preventDefault(); if (!isAdmin) return;
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
         const tanggal = document.getElementById('tanggal').value;
         const keterangan = document.getElementById('keterangan').value;
         const shiftBaru = document.getElementById('shift-baru').value;
-        
         const jamStart = document.getElementById('lembur-jam-start').value;
         const jamEnd = document.getElementById('lembur-jam-end').value;
         const gantiKaryawanId = document.getElementById('lembur-gantikan-siapa').value;
-
         const editLogId = document.getElementById('edit-id-log').value;
+
         const user = listKaryawan.find(k => k.id === targetUserId);
         if (!user) return;
 
@@ -782,16 +766,13 @@
         let infoTeks = keterangan;
 
         if (jenis === 'Tukar') {
-            statusFinal = shiftBaru;
-            infoTeks = `Tukar ke ${shiftBaru} (${keterangan})`;
+            statusFinal = shiftBaru; infoTeks = `Tukar ke ${shiftBaru} (${keterangan})`;
         } else if (jenis === 'Lembur') {
             infoTeks = `Jam ${jamStart} - ${jamEnd} WIB. `;
             if(gantiKaryawanId) {
                 const kDiberhentikan = listKaryawan.find(k => k.id === gantiKaryawanId);
-                infoTeks += `[Pengganti Absen: ${kDiberhentikan ? kDiberhentikan.nama : ''}] - ${keterangan}`;
-            } else {
-                infoTeks += `[Lembur Mandiri] - ${keterangan}`;
-            }
+                infoTeks += `[Ganti: ${kDiberhentikan ? kDiberhentikan.nama : ''}] - ${keterangan}`;
+            } else { infoTeks += `[Lembur Mandiri] - ${keterangan}`; }
         }
 
         if (editLogId) {
@@ -802,32 +783,17 @@
                     delete userLama.modifikasi[dataLama.tanggal];
                     if(userLama.infoLembur) delete userLama.infoLembur[dataLama.tanggal];
                 }
-                
-                dataLama.karyawanId = targetUserId;
-                dataLama.namaKaryawan = user.nama;
-                dataLama.jenis = jenis;
-                dataLama.tanggal = tanggal;
-                dataLama.statusShift = statusFinal;
-                dataLama.info = infoTeks;
-                dataLama.gantiKaryawanId = gantiKaryawanId;
-                dataLama.jamStart = jamStart;
-                dataLama.jamEnd = jamEnd;
+                dataLama.karyawanId = targetUserId; dataLama.namaKaryawan = user.nama;
+                dataLama.jenis = jenis; dataLama.tanggal = tanggal; dataLama.statusShift = statusFinal;
+                dataLama.info = infoTeks; dataLama.gantiKaryawanId = gantiKaryawanId;
+                dataLama.jamStart = jamStart; dataLama.jamEnd = jamEnd;
             }
             cancelEditKegiatan();
         } else {
-            const newLog = {
-                id: 'log_' + Date.now(),
-                karyawanId: targetUserId,
-                namaKaryawan: user.nama,
-                jenis: jenis,
-                tanggal: tanggal,
-                statusShift = statusFinal,
-                info: infoTeks,
-                gantiKaryawanId: gantiKaryawanId,
-                jamStart: jamStart,
-                jamEnd: jamEnd
-            };
-            logPengajuan.unshift(newLog);
+            logPengajuan.unshift({
+                id: 'log_' + Date.now(), karyawanId: targetUserId, namaKaryawan: user.nama,
+                jenis, tanggal, statusShift: statusFinal, info: infoTeks, gantiKaryawanId, jamStart, jamEnd
+            });
         }
 
         user.modifikasi[tanggal] = statusFinal;
@@ -837,22 +803,19 @@
         }
 
         saveData(); renderCalendar(); renderLog();
-        document.getElementById('form-kegiatan').reset();
-        toggleFormPilihan();
+        document.getElementById('form-kegiatan').reset(); toggleFormPilihan();
     });
 
     function pemicuEditKegiatan(id) {
         if (!isAdmin) return;
-        const item = logPengajuan.find(log => log.id === id);
-        if (!item) return;
+        const item = logPengajuan.find(log => log.id === id); if (!item) return;
 
         document.getElementById('edit-id-log').value = item.id;
         document.getElementById('input-karyawan').value = item.karyawanId;
         document.getElementById('jenis').value = item.jenis;
         document.getElementById('tanggal').value = item.tanggal;
         
-        sinkronisasiOpsiLembur();
-        toggleFormPilihan();
+        sinkronisasiOpsiLembur(); toggleFormPilihan();
 
         if (item.jenis === 'Tukar') {
             document.getElementById('shift-baru').value = item.statusShift;
@@ -862,13 +825,10 @@
             document.getElementById('lembur-jam-start').value = item.jamStart || "15:00";
             document.getElementById('lembur-jam-end').value = item.jamEnd || "23:00";
             document.getElementById('lembur-gantikan-siapa').value = item.gantiKaryawanId || "";
-            let desMurni = item.info.split('] - ')[1] || item.info;
-            document.getElementById('keterangan').value = desMurni;
-        } else {
-            document.getElementById('keterangan').value = item.info;
-        }
+            document.getElementById('keterangan').value = item.info.split('] - ')[1] || item.info;
+        } else { document.getElementById('keterangan').value = item.info; }
 
-        document.getElementById('form-kegiatan-title').innerText = "Update Data Kegiatan / Lembur";
+        document.getElementById('form-kegiatan-title').innerText = "Update Data Kegiatan";
         document.getElementById('btn-submit-kegiatan').innerText = "Update & Sinkronisasi";
         document.getElementById('btn-submit-kegiatan').style.background = "var(--warning)";
         document.getElementById('btn-batal-kegiatan').style.display = "inline-block";
@@ -876,9 +836,7 @@
 
     function cancelEditKegiatan() {
         document.getElementById('edit-id-log').value = "";
-        document.getElementById('form-kegiatan').reset();
-        toggleFormPilihan();
-
+        document.getElementById('form-kegiatan').reset(); toggleFormPilihan();
         document.getElementById('form-kegiatan-title').innerText = "Input Izin / Tukar / Lembur";
         document.getElementById('btn-submit-kegiatan').innerText = "Simpan ke Kalender";
         document.getElementById('btn-submit-kegiatan').style.background = "var(--success)";
@@ -888,30 +846,17 @@
     function hapusKegiatan(id) {
         if (!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
-        if (item && confirm(`Batalkan agenda ${item.jenis} untuk ${item.namaKaryawan} pada tanggal ${item.tanggal}?`)) {
+        if (item && confirm(`Batalkan agenda ${item.jenis}?`)) {
             const user = listKaryawan.find(k => k.id === item.karyawanId);
-            if (user) {
-                delete user.modifikasi[item.tanggal];
-                if(user.infoLembur) delete user.infoLembur[item.tanggal];
-            }
+            if (user) { delete user.modifikasi[item.tanggal]; if(user.infoLembur) delete user.infoLembur[item.tanggal]; }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
-            if(document.getElementById('edit-id-log').value === id) cancelEditKegiatan();
-            saveData(); renderCalendar(); renderLog();
+            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
         }
     }
 
     function renderLog() {
         const tbody = document.getElementById('log-tabel');
-        const headerAksi = document.querySelector('.admin-action-header');
         tbody.innerHTML = '';
-        
-        if (!headerAksi) return;
-
-        if (isAdmin) {
-            headerAksi.style.display = "table-cell";
-        } else {
-            headerAksi.style.display = "none";
-        }
 
         if(logPengajuan.length === 0){
             tbody.innerHTML = `<tr><td colspan="${isAdmin ? 5 : 4}" style="text-align:center; color:#9ca3af;">Belum ada riwayat aktivitas manual</td></tr>`;
@@ -940,7 +885,6 @@
         });
     }
 
-    // Eksekusi inisiasi awal
     muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
 </script>
 
