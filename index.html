@@ -3,871 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Roster Shifting Karyawan (Mei - Des 2026)</title>
+    <title>Sistem Roster Karyawan & Pengajuan</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary: #4f46e5;
-            --pagi: #fef08a;
-            --sore: #fed7aa;
-            --malam: #bfdbfe;
-            --libur: #bbf7d0;
-            --cuti: #fca5a5;
-            --sakit: #f472b6;
-            --lembur: #fde047;
-            --tanggal-merah: #ef4444;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
+            --primary-color: #2563eb;
+            --admin-color: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-color: #e2e8f0;
         }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f3f4f6;
-            margin: 0;
-            padding: 20px;
-            color: #1f2937;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1, h2, h3 { text-align: center; color: #111827; margin-top: 0; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
         
-        /* Badge Status Akses */
-        .status-akses-badge {
-            display: block;
-            text-align: center;
-            margin: -10px auto 15px auto;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            width: fit-content;
-        }
-        .akses-admin { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981; }
-        .akses-viewer { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+        /* Header & Badge Status */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .badge { padding: 6px 16px; border-radius: 50px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .badge-admin { background-color: #fee2e2; color: var(--admin-color); border: 1px solid #fca5a5; }
+        .badge-readonly { background-color: #dbeafe; color: var(--primary-color); border: 1px solid #93c5fd; }
 
-        /* Watermark Styles */
-        .app-signature {
-            text-align: center;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .app-signature span {
-            color: #38bdf8;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-        }
-        .footer-watermark {
-            text-align: center;
-            margin-top: 30px;
-            padding: 15px;
-            font-size: 12px;
-            color: #64748b;
-            border-top: 1px solid #cbd5e1;
-        }
+        /* Grid Layout */
+        .grid { display: grid; grid-template-columns: 1fr; gap: 25px; margin-bottom: 25px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 2fr 1fr; } }
 
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 20px;
-        }
-        @media (max-width: 992px) {
-            .grid-layout { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        .controls-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
-        .color-box { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #ccc; }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        button:hover { opacity: 0.9; }
-        button:disabled { background: #d1d5db; cursor: not-allowed; opacity: 1; }
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border-color); }
+        h2 { margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; color: #334155; }
         
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-        }
-        .day-name { font-weight: bold; padding: 10px 0; background: #e5e7eb; border-radius: 4px; font-size: 13px;}
-        .day-cell {
-            min-height: 95px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: #fff;
-            position: relative;
-        }
-        .day-num { font-weight: bold; font-size: 14px; text-align: left; }
-        .day-num.red-text { color: var(--tanggal-merah); }
-        .day-status { font-size: 10px; font-weight: bold; padding: 2px; border-radius: 4px; margin-top: 5px; text-align: center; line-height: 1.2;}
-        .day-time { font-size: 85%; font-weight: normal; opacity: 0.8; display: block;}
-        .holiday-info { font-size: 9px; color: #b91c1c; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; font-weight: 500;}
-
-        form { display: flex; flex-direction: column; gap: 10px; }
-        label { font-weight: 500; font-size: 13px; margin-bottom: -4px;}
-        input, select { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        /* Form & Input */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; font-size: 14px; font-weight: 600; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
         
-        .btn-submit { background: var(--success); color: white; font-weight: bold; margin-top: 5px;}
-        .btn-danger { background: var(--danger); color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;}
-        .btn-warning { background: var(--warning); color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;}
-        .btn-cancel { background: #6b7280; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; margin-top: 5px;}
-
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
-        th { background: #f9fafb; }
-        .action-buttons { display: flex; gap: 4px; justify-content: center; }
-
-        .flex-row { display: flex; gap: 10px; }
-        .flex-row > div { flex: 1; display: flex; flex-direction: column; }
+        /* Buttons */
+        .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
         
-        /* Kelas Sembunyi untuk Proteksi Viewer */
-        .admin-only-feature { display: block; }
-        .hidden-feature { display: none !important; }
+        /* Mode Lock Style untuk Kelola Karyawan */
+        .locked-section { position: relative; }
+        .locked-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 250, 252, 0.5); backdrop-filter: blur(1px); border-radius: 12px; z-index: 10; cursor: not-allowed; }
+        .mode-readonly .locked-overlay { display: block; }
+        .mode-readonly .admin-btn { pointer-events: none; opacity: 0.4; filter: grayscale(1); }
+        .lock-notice { display: none; color: var(--admin-color); font-size: 12px; font-weight: 600; margin-top: 5px; }
+        .mode-readonly .lock-notice { display: block; }
+
+        /* Roster Table */
+        .table-responsive { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #f1f5f9; font-weight: 600; }
+        
+        /* List Karyawan */
+        .karyawan-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; }
+        .karyawan-info { display: flex; flex-direction: column; }
+        .karyawan-dept { font-size: 12px; color: #64748b; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- PROTECTED HEAD VISUAL WATERMARK -->
-    <div class="app-signature" id="top-author-watermark">
-        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
-    </div>
-
-    <h1>Sistem Jadwal Shifting Karyawan 2026</h1>
-    <div id="badge-akses" class="status-akses-badge akses-viewer">Mode Meninjau (Read-Only)</div>
-    <h3 style="color: #6b7280; margin-top: -10px; margin-bottom: 25px;">Periode Pembatasan: Mei 2026 - Desember 2026</h3>
-
-    <!-- Legend & Dropdown Utama -->
-    <div class="card controls-header">
+    <!-- HEADER -->
+    <header>
         <div>
-            <label for="pilih-karyawan" style="font-size: 16px; margin-right: 10px;"><b>Lihat Jadwal Karyawan:</b></label>
-            <select id="pilih-karyawan" onchange="gantiKaryawanAktif()" style="font-size: 16px; padding: 5px 10px; font-weight: bold; border-color: var(--primary);">
-            </select>
+            <h1>Sistem Jadwal Roster & Pengajuan</h1>
+            <p style="color: #64748b; font-size: 14px;">Manajemen Kerja & Formulir Digital Mandiri</p>
         </div>
-        
-        <div class="legend" id="render-legend-view"></div>
-    </div>
+        <div id="statusBadge" class="badge">Memuat...</div>
+    </header>
 
-    <div class="grid-layout">
-        <!-- Kolom Kiri: Tampilan Kalender -->
+    <!-- UTAMA -->
+    <div class="grid">
+        <!-- KIRI: Jadwal Roster (Semua Bisa Lihat) -->
         <div class="card">
-            <div class="calendar-header">
-                <button id="btn-prev-month" onclick="changeMonth(-1)">◀ Sebelum</button>
-                <h2 id="calendar-title" style="margin:0;">Bulan Tahun</h2>
-                <button id="btn-next-month" onclick="changeMonth(1)">Sesudah ▶</button>
+            <h2>📅 Jadwal Roster Mingguan</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Karyawan</th>
+                            <th>Departemen</th>
+                            <th>Senin</th>
+                            <th>Selasa</th>
+                            <th>Rabu</th>
+                            <th>Kamis</th>
+                            <th>Jumat</th>
+                            <th>Sabtu</th>
+                            <th>Minggu</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rosterTableBody">
+                        <!-- Data roster otomatis muncul di sini -->
+                    </tbody>
+                </table>
             </div>
-            <div class="calendar-grid" id="calendar-grid"></div>
         </div>
 
-        <!-- Kolom Kanan: Pengaturan Kelola -->
-        <div>
-            <!-- Form Input & Edit Data Karyawan -->
-            <div class="card admin-only-feature" id="panel-kelola-karyawan">
-                <h2 id="form-karyawan-title">Kelola Karyawan</h2>
-                <form id="form-karyawan">
-                    <input type="hidden" id="edit-id-karyawan" value="">
-                    
-                    <label for="nama-baru" id="label-nama-karyawan">Nama Karyawan:</label>
-                    <input type="text" id="nama-baru" placeholder="Contoh: Perdana" required>
-                    
-                    <label for="pola-start">Posisi Siklus Pada 17 Mei 2026:</label>
-                    <select id="pola-start">
-                        <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
-                        <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
-                        <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
-                        <option value="6">Hari ke-7: Off / Libur Pertama</option>
+        <!-- KANAN ATAS: Kelola Karyawan (TETAP TAMPIL - TAPI DIKUNCI JIKA READ-ONLY) -->
+        <div class="card locked-section" id="kelolaKaryawanCard">
+            <div class="locked-overlay" onclick="alertAksesDitolak()"></div>
+            <h2>👥 Kelola Data Karyawan</h2>
+            <p class="lock-notice">🔒 Mode Lihat-Saja: Fitur Tambah/Hapus Terkunci untuk Karyawan.</p>
+            
+            <form id="karyawanForm" style="margin-top: 15px;" onsubmit="tambahKaryawan(event)">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="namaKaryawan" placeholder="Contoh: Budi Santoso" required>
+                </div>
+                <div class="form-group">
+                    <label>Departemen / Divisi</label>
+                    <select id="deptKaryawan">
+                        <option value="Operasional">Operasional</option>
+                        <option value="Kasir">Kasir</option>
+                        <option value="Gudang">Gudang</option>
+                        <option value="Kitchen">Kitchen</option>
                     </select>
-                    
-                    <button type="submit" id="btn-submit-karyawan" class="btn-submit" style="background: var(--primary);">+ Tambah Karyawan</button>
-                    <button type="button" id="btn-batal-edit" class="btn-cancel" style="display:none;" onclick="cancelEditKaryawan()">Batal Perubahan</button>
-                </form>
-
-                <label style="display:block; margin-top: 20px;"><b>Daftar & Siklus Karyawan:</b></label>
-                <div style="max-height: 130px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; margin-top: 5px;">
-                    <table style="margin-top: 0; font-size: 12px;">
-                        <thead>
-                            <tr>
-                                <th>Nama</th>
-                                <th>Posisi Siklus</th>
-                                <th class="kolom-aksi-admin" style="text-align: center; width: 100px;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabel-kelola-karyawan"></tbody>
-                    </table>
                 </div>
-            </div>
+                <button type="submit" class="btn btn-primary admin-btn" style="width: 100%;">Tambah Karyawan Baru</button>
+            </form>
 
-            <!-- Form Pengajuan Izin / Tukar Shift / Lembur Pengganti -->
-            <div class="card admin-only-feature" id="panel-input-kegiatan">
-                <h2 id="form-kegiatan-title">Input Izin / Tukar / Lembur</h2>
-                <form id="form-kegiatan">
-                    <input type="hidden" id="edit-id-log" value="">
-
-                    <label for="input-karyawan">Pilih Karyawan:</label>
-                    <select id="input-karyawan" onchange="sinkronisasiOpsiLembur()" required></select>
-
-                    <div class="flex-row">
-                        <div>
-                            <label for="jenis">Jenis Transaksi:</label>
-                            <select id="jenis" onchange="toggleFormPilihan()">
-                                <option value="Cuti">Cuti</option>
-                                <option value="Sakit">Sakit</option>
-                                <option value="Tukar">Tukar Shift</option>
-                                <option value="Lembur">Kerja Lembur</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="tanggal">Tanggal:</label>
-                            <input type="date" id="tanggal" min="2026-05-01" max="2026-12-31" required>
-                        </div>
-                    </div>
-
-                    <!-- Panel Opsi Jika Memilih Tukar Shift -->
-                    <div id="tukar-opsi" style="display: none;">
-                        <label for="shift-baru">Ubah Jadwal Menjadi:</label>
-                        <select id="shift-baru">
-                            <option value="Pagi">Shift 1 Pagi</option>
-                            <option value="Sore">Shift 2 Sore</option>
-                            <option value="Malam">Shift 3 Malam</option>
-                            <option value="Libur">Off (Libur)</option>
-                        </select>
-                    </div>
-
-                    <!-- PANEL BARU: Khusus untuk Konfigurasi Lembur -->
-                    <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
-                        <div class="flex-row" style="margin-bottom: 8px;">
-                            <div>
-                                <label for="lembur-jam-start">Jam Mulai Lembur:</label>
-                                <input type="time" id="lembur-jam-start" value="15:00">
-                            </div>
-                            <div>
-                                <label for="lembur-jam-end">Jam Selesai:</label>
-                                <input type="time" id="lembur-jam-end" value="23:00">
-                            </div>
-                        </div>
-                        <label for="lembur-gantikan-siapa">Menggantikan Karyawan Absen? (Opsional):</label>
-                        <select id="lembur-gantikan-siapa">
-                            <option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>
-                        </select>
-                    </div>
-
-                    <label for="keterangan">Keterangan Tambahan / Alasan:</label>
-                    <input type="text" id="keterangan" placeholder="Contoh: Gantikan cuti Rulli / Lembur volume padat" required>
-
-                    <button type="submit" id="btn-submit-kegiatan" class="btn-submit">Simpan ke Kalender</button>
-                    <button type="button" id="btn-batal-kegiatan" class="btn-cancel" style="display:none;" onclick="cancelEditKegiatan()">Batal Perubahan</button>
-                </form>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border-color);">
+            
+            <div id="karyawanListContainer">
+                <!-- Daftar nama karyawan & tombol hapus muncul di sini -->
             </div>
         </div>
     </div>
 
-    <!-- PENGATURAN GLOBAL SHIFT -->
-    <div class="card" id="panel-global-shift-card">
-        <h2>⚙️ Pengaturan Global Nama & Jam Kerja Shift</h2>
-        <form id="form-global-shift">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
-                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--warning);">
-                    <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 1</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-pagi-nama" value="Shift 1 Pagi" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-pagi-jam" value="07:00 - 15:00 WIB" style="width:90%">
+    <!-- BAWAH: Form Pengajuan Terbuka Untuk Semua Orang (Izin/Tukar/Lembur) -->
+    <div class="card" style="margin-top: 25px;">
+        <h2>📝 Formulir Mandiri (Izin / Tukar Shift / Lembur)</h2>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">Semua karyawan dapat mengisi form pengajuan ini kapan saja tanpa perlu login admin.</p>
+        
+        <form id="formPengajuan" onsubmit="kirimPengajuan(event)">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div class="form-group">
+                    <label>Pilih Karyawan</label>
+                    <select id="formNamaKaryawan" required>
+                        <option value="">-- Pilih Nama Anda --</option>
+                    </select>
                 </div>
-                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--sore);">
-                    <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 2</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-sore-nama" value="Shift 2 Sore" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-sore-jam" value="15:00 - 23:00 WIB" style="width:90%">
+                <div class="form-group">
+                    <label>Jenis Pengajuan</label>
+                    <select id="formJenis" required>
+                        <option value="Izin Absen">Izin Tidak Masuk Kerja</option>
+                        <option value="Tukar Shift">Tukar Shift Kerja</option>
+                        <option value="Sakit">Sakit (Dengan Surat Dokter)</option>
+                        <option value="Lembur">Pengajuan Lembur Kerja</option>
+                    </select>
                 </div>
-                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--primary);">
-                    <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 3</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-malam-nama" value="Shift 3 Malam" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-malam-jam" value="23:00 - 07:00 WIB" style="width:90%">
-                </div>
-                <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--success);">
-                    <h4 style="margin: 0 0 8px 0;">Status Libur</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-libur-nama" value="Off (Libur)" style="margin-bottom:8px; width:90%">
-                    <label>Keterangan:</label>
-                    <input type="text" id="g-libur-jam" value="Bebas Tugas" style="width:90%">
+                <div class="form-group">
+                    <label>Tanggal yang Diajukan</label>
+                    <input type="date" id="formTanggal" required>
                 </div>
             </div>
-            <button id="btn-save-global" type="button" class="btn-submit admin-only-feature" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
+            <div class="form-group" style="margin-top: 10px;">
+                <label>Alasan / Keterangan Detail</label>
+                <textarea id="formAlasan" rows="3" placeholder="Tulis alasan izin, atau ajak tukar dengan siapa, atau detail jam lembur..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Kirim Pengajuan Resmi</button>
         </form>
-    </div>
-
-    <!-- TABEL LOG RIWAYAT -->
-    <div class="card">
-        <h2>Riwayat Pengajuan, Tukar Jadwal & Lembur Karyawan</h2>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tanggal Tugas</th>
-                        <th>Karyawan</th>
-                        <th>Jenis Pengajuan</th>
-                        <th>Detail Jam / Keterangan Perubahan</th>
-                        <th class="kolom-aksi-admin" style="text-align: center; width: 120px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="log-tabel"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- PROTECTED FOOTER WATERMARK -->
-    <div class="footer-watermark" id="bottom-author-watermark">
-        &copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>Rizky SIL 1806</b>. Modifying author identity is strictly prohibited.
     </div>
 </div>
 
 <script>
-    // --- SKRIP PERMANEN KUNCI HAK CIPTA (ANTI-TAMPER & ANTI-REPLACEMENT) ---
-    const PembuatAplikasi = {};
-    Object.defineProperty(PembuatAplikasi, 'nama', {
-        value: 'Rizky SIL 1806',
-        writable: false,
-        configurable: false
-    });
-    Object.freeze(PembuatAplikasi);
-
-    // CEK VALIDASI AKSES LINK (ADMIN VS VIEWER)
-    function dapatkanStatusAkses() {
-        const parameterUrl = new URLSearchParams(window.location.search);
-        return parameterUrl.get('role') === 'admin';
-    }
-    const isAdmin = dapatkanStatusAkses();
-
-    // Fungsi real-time otomatis memulihkan atau memblokir jika kode visual dirusak/di-inspect element
-    setInterval(function JagaIntegritas() {
-        const topWM = document.getElementById('top-author-watermark');
-        const bottomWM = document.getElementById('bottom-author-watermark');
-        if (!topWM || topWM.innerText.indexOf(PembuatAplikasi.nama) === -1) {
-            location.reload();
-        }
-        if (!bottomWM || bottomWM.innerHTML.indexOf(PembuatAplikasi.nama) === -1) {
-            alert("Peringatan Keamanan: Hak Cipta " + PembuatAplikasi.nama + " Bersifat Mutlak!");
-            document.body.innerHTML = "<h1>Akses Ditutup: Dilarang Keras Memanipulasi Nama Pembuat Sistem Aplikasi!</h1>";
-        }
-        // Cegah pembobolan fitur admin lewat console browser
-        if (!isAdmin) {
-            terapkanModePembatasanViewer();
-        }
-    }, 3000);
-
-    function terapkanModePembatasanViewer() {
-        document.getElementById('badge-akses').innerText = "Mode Meninjau (Read-Only)";
-        document.getElementById('badge-akses').className = "status-akses-badge akses-viewer";
-        
-        // Sembunyikan panel form input
-        document.getElementById('panel-kelola-karyawan').classList.add('hidden-feature');
-        document.getElementById('panel-input-kegiatan').classList.add('hidden-feature');
-        document.getElementById('btn-save-global').classList.add('hidden-feature');
-        
-        // Kunci input nama global shift agar tidak bisa diketik
-        document.querySelectorAll('#form-global-shift input').forEach(input => input.disabled = true);
-
-        // Sembunyikan kolom aksi pada tabel-tabel
-        document.querySelectorAll('.kolom-aksi-admin').forEach(el => el.classList.add('hidden-feature'));
-        document.querySelectorAll('.action-buttons').forEach(el => el.classList.add('hidden-feature'));
-    }
-
-    function terapkanModeAksesAdmin() {
-        document.getElementById('badge-akses').innerText = "Mode Pemilik (Akses Penuh Admin)";
-        document.getElementById('badge-akses').className = "status-akses-badge akses-admin";
-    }
-    // ------------------------------------------------------------------------
-
-    let currentDate = new Date(2026, 4, 1);
-    const anchorDate = new Date(2026, 4, 17);
-    const polaShiftBase = ["Pagi", "Pagi", "Sore", "Sore", "Malam", "Malam", "Libur", "Libur"];
-
-    const defaultShiftConfig = {
-        Pagi: { nama: "Shift 1 Pagi", jam: "07:00 - 15:00 WIB" },
-        Sore: { nama: "Shift 2 Sore", jam: "15:00 - 23:00 WIB" },
-        Malam: { nama: "Shift 3 Malam", jam: "23:00 - 07:00 WIB" },
-        Libur: { nama: "Off (Libur)", jam: "Bebas Tugas" }
-    };
-
-    const defaultKaryawan = [
-        { id: "k1", nama: "Adlin", urutanPola: 0, modifikasi: {}, infoLembur: {} },  
-        { id: "k2", nama: "Rizky", urutanPola: 2, modifikasi: {}, infoLembur: {} },  
-        { id: "k3", nama: "Rulli", urutanPola: 4, modifikasi: {}, infoLembur: {} },  
-        { id: "k4", nama: "Agam", urutanPola: 6, modifikasi: {}, infoLembur: {} }    
+    // Database Lokal Sementara (Local Storage)
+    let dbKaryawan = JSON.parse(localStorage.getItem('db_karyawan')) || [
+        { id: 1, nama: 'Andi Wijaya', dept: 'Operasional' },
+        { id: 2, nama: 'Siti Rahma', dept: 'Kasir' }
     ];
 
-    const tanggalMerah2026 = {
-        "2026-05-01": "Hari Buruh Internasional", "2026-05-14": "Kenaikan Yesus Kristus",
-        "2026-05-27": "Hari Raya Waisak / Idul Adha", "2026-06-01": "Hari Lahir Pancasila",
-        "2026-06-16": "Tahun Baru Islam", "2026-08-17": "Hari Kemerdekaan RI",
-        "2026-08-25": "Maulid Nabi Muhammad SAW", "2026-12-25": "Hari Raya Natal"
-    };
+    // Cek Role URL (?role=admin)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('role') === 'admin';
 
-    let listKaryawan = JSON.parse(localStorage.getItem('roster_2026_karyawan_v6')) || defaultKaryawan;
-    let logPengajuan = JSON.parse(localStorage.getItem('roster_2026_log_v6')) || [];
-    let configShift = JSON.parse(localStorage.getItem('roster_2026_config_v6')) || defaultShiftConfig;
-    let karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
+    // Inisialisasi Halaman
+    document.addEventListener('DOMContentLoaded', () => {
+        konfigurasiAksesKeamanan();
+        renderKaryawanDanRoster();
+    });
 
-    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    function konfigurasiAksesKeamanan() {
+        const badge = document.getElementById('statusBadge');
+        const body = document.body;
 
-    function hitungShiftUser(tanggal, urutanPola) {
-        const selisihWaktu = tanggal.getTime() - anchorDate.getTime();
-        const selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
-        let index = (selisihHari + parseInt(urutanPola)) % 8;
-        if (index < 0) index += 8;
-        return polaShiftBase[index];
-    }
-
-    function renderLegend() {
-        const legendDiv = document.getElementById('render-legend-view');
-        legendDiv.innerHTML = `
-            <div class="legend-item"><div class="color-box" style="background: var(--pagi)"></div> ${configShift.Pagi.nama}</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--sore)"></div> ${configShift.Sore.nama}</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--malam)"></div> ${configShift.Malam.nama}</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--libur)"></div> ${configShift.Libur.nama}</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--cuti)"></div> Cuti</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--sakit)"></div> Sakit</div>
-            <div class="legend-item"><div class="color-box" style="background: var(--lembur)"></div> Lembur Kerja</div>
-        `;
-    }
-
-    function muatFormGlobal() {
-        document.getElementById('g-pagi-nama').value = configShift.Pagi.nama;
-        document.getElementById('g-pagi-jam').value = configShift.Pagi.jam;
-        document.getElementById('g-sore-nama').value = configShift.Sore.nama;
-        document.getElementById('g-sore-jam').value = configShift.Sore.jam;
-        document.getElementById('g-malam-nama').value = configShift.Malam.nama;
-        document.getElementById('g-malam-jam').value = configShift.Malam.jam;
-        document.getElementById('g-libur-nama').value = configShift.Libur.nama;
-        document.getElementById('g-libur-jam').value = configShift.Libur.jam;
-    }
-
-    function simpanPengaturanGlobal() {
-        if(!isAdmin) return alert("Akses ditolak!");
-        configShift.Pagi.nama = document.getElementById('g-pagi-nama').value;
-        configShift.Pagi.jam = document.getElementById('g-pagi-jam').value;
-        configShift.Sore.nama = document.getElementById('g-sore-nama').value;
-        configShift.Sore.jam = document.getElementById('g-sore-jam').value;
-        configShift.Malam.nama = document.getElementById('g-malam-nama').value;
-        configShift.Malam.jam = document.getElementById('g-malam-jam').value;
-        configShift.Libur.nama = document.getElementById('g-libur-nama').value;
-        configShift.Libur.jam = document.getElementById('g-libur-jam').value;
-        saveData(); renderLegend(); renderCalendar();
-        alert("Konfigurasi global shift berhasil disimpan!");
-    }
-
-    function updateKomponenKaryawan() {
-        const pilihKaryawan = document.getElementById('pilih-karyawan');
-        const inputKaryawan = document.getElementById('input-karyawan');
-        const tabelKelola = document.getElementById('tabel-kelola-karyawan');
-        
-        pilihKaryawan.innerHTML = ''; inputKaryawan.innerHTML = ''; tabelKelola.innerHTML = '';
-
-        if (listKaryawan.length === 0) {
-            pilihKaryawan.innerHTML = '<option value="">-- Kosong --</option>';
-            inputKaryawan.innerHTML = '<option value="">-- Kosong --</option>';
-            tabelKelola.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#9ca3af;">Belum ada karyawan</td></tr>';
-            karyawanAktifId = null; return;
-        }
-
-        listKaryawan.forEach(k => {
-            let opt1 = document.createElement('option'); opt1.value = k.id; opt1.innerText = k.nama;
-            if(k.id === karyawanAktifId) opt1.selected = true;
-            pilihKaryawan.appendChild(opt1);
-
-            let opt2 = document.createElement('option'); opt2.value = k.id; opt2.innerText = k.nama;
-            inputKaryawan.appendChild(opt2);
-
-            let teksSiklus = k.urutanPola==0?"Pagi ke-1":k.urutanPola==2?"Sore ke-1":k.urutanPola==4?"Malam ke-1":"Libur ke-1";
-            let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${k.nama}</b></td>
-                <td><span style="font-size:11px; background:#f3f4f6; padding:2px 6px; border-radius:4px;">${teksSiklus}</span></td>
-                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
-                    <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
-                    <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
-                </td>
-            `;
-            tabelKelola.appendChild(tr);
-        });
-        sinkronisasiOpsiLembur();
-    }
-
-    function sinkronisasiOpsiLembur() {
-        const idKaryawanLembur = document.getElementById('input-karyawan').value;
-        const dropdownGanti = document.getElementById('lembur-gantikan-siapa');
-        if(!dropdownGanti) return;
-        dropdownGanti.innerHTML = '<option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>';
-        
-        listKaryawan.forEach(k => {
-            if(k.id !== idKaryawanLembur) {
-                let opt = document.createElement('option');
-                opt.value = k.id;
-                opt.innerText = `Gantikan: ${k.nama}`;
-                dropdownGanti.appendChild(opt);
-            }
-        });
-    }
-
-    function pemicuEditKaryawan(id, nama, urutanPola) {
-        if(!isAdmin) return;
-        document.getElementById('edit-id-karyawan').value = id;
-        document.getElementById('nama-baru').value = nama;
-        document.getElementById('pola-start').value = urutanPola;
-        document.getElementById('form-karyawan-title').innerText = "Edit Nama & Siklus Karyawan";
-        document.getElementById('btn-submit-karyawan').innerText = "Simpan Perubahan";
-        document.getElementById('btn-submit-karyawan').style.background = "var(--warning)";
-        document.getElementById('btn-batal-edit').style.display = "inline-block";
-    }
-
-    function cancelEditKaryawan() {
-        document.getElementById('edit-id-karyawan').value = "";
-        document.getElementById('nama-baru').value = "";
-        document.getElementById('form-karyawan-title').innerText = "Kelola Karyawan";
-        document.getElementById('btn-submit-karyawan').innerText = "+ Tambah Karyawan";
-        document.getElementById('btn-submit-karyawan').style.background = "var(--primary)";
-        document.getElementById('btn-batal-edit').style.display = "none";
-    }
-
-    function hapusKaryawan(id) {
-        if(!isAdmin) return;
-        const karyawan = listKaryawan.find(k => k.id === id);
-        if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua riwayat izin & lembur juga akan dibersihkan.`)) {
-            logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
-            listKaryawan = listKaryawan.filter(k => k.id !== id);
-            if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            if(document.getElementById('edit-id-karyawan').value === id) cancelEditKaryawan();
-            saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+        if (isAdmin) {
+            badge.innerText = "Mode: Admin Utama";
+            badge.className = "badge badge-admin";
+            body.classList.remove('mode-readonly');
+        } else {
+            badge.innerText = "Mode: Karyawan (Lihat Jadwal)";
+            badge.className = "badge badge-readonly";
+            body.classList.add('mode-readonly'); // Mengaktifkan CSS pengunci
         }
     }
 
-    function gantiKaryawanAktif() {
-        karyawanAktifId = document.getElementById('pilih-karyawan').value;
-        renderCalendar();
+    function alertAksesDitolak() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Akses Terkunci',
+            text: 'Anda berada di Mode Karyawan. Hanya Admin yang dapat menambah atau menghapus data karyawan!',
+            confirmButtonColor: '#2563eb'
+        });
     }
 
-    function renderCalendar() {
-        const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = '';
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        document.getElementById('calendar-title').innerText = `${namaBulan[month]} ${year}`;
+    function renderKaryawanDanRoster() {
+        const tableBody = document.getElementById('rosterTableBody');
+        const listContainer = document.getElementById('karyawanListContainer');
+        const selectForm = document.getElementById('formNamaKaryawan');
 
-        document.getElementById('btn-prev-month').disabled = (month === 4); 
-        document.getElementById('btn-next-month').disabled = (month === 11);
+        tableBody.innerHTML = '';
+        listContainer.innerHTML = '';
+        selectForm.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
 
-        namaHari.forEach(hari => {
-            const div = document.createElement('div'); div.className = 'day-name'; div.innerText = hari; grid.appendChild(div);
-        });
-
-        const user = listKaryawan.find(k => k.id === karyawanAktifId);
-        if(!user) {
-            grid.insertAdjacentHTML('beforeend', `<div style="grid-column: span 7; text-align:center; padding: 40px 0; color: #9ca3af;">Tidak ada karyawan terpilih.</div>`);
+        if(dbKaryawan.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;">Belum ada data karyawan.</td></tr>`;
             return;
         }
 
-        const hariPertama = new Date(year, month, 1).getDay();
-        const jumlahHari = new Date(year, month + 1, 0).getDate();
+        dbKaryawan.forEach(k => {
+            // 1. Render ke Tabel Roster Utama
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><strong>${k.nama}</strong></td>
+                <td><span style="color:#64748b; font-size:13px;">${k.dept}</span></td>
+                <td><span style="color:#16a34a; font-weight:600;">Pagi</span></td>
+                <td><span style="color:#16a34a; font-weight:600;">Pagi</span></td>
+                <td><span style="color:#ea580c; font-weight:600;">Siang</span></td>
+                <td><span style="color:#ea580c; font-weight:600;">Siang</span></td>
+                <td><span style="color:#dc2626; font-weight:600;">Malam</span></td>
+                <td><span style="color:#2563eb; font-weight:600;">OFF</span></td>
+                <td><span style="color:#2563eb; font-weight:600;">OFF</span></td>
+            `;
+            tableBody.appendChild(row);
 
-        for (let i = 0; i < hariPertama; i++) grid.appendChild(document.createElement('div'));
-
-        for (let hari = 1; hari <= jumlahHari; hari++) {
-            const tanggalTarget = new Date(year, month, hari);
-            const stringTanggal = `${tanggalTarget.getFullYear()}-${String(tanggalTarget.getMonth() + 1).padStart(2, '0')}-${String(tanggalTarget.getDate()).padStart(2, '0')}`;
-            
-            const cell = document.createElement('div'); cell.className = 'day-cell';
-
-            let tipeShiftId = user.modifikasi[stringTanggal] || hitungShiftUser(tanggalTarget, user.urutanPola);
-            const namaLibur = tanggalMerah2026[stringTanggal];
-            const isTanggalMerah = !!namaLibur;
-
-            let bgColor = 'var(--libur)', statusText = configShift.Libur.nama, jamText = configShift.Libur.jam;
-
-            if (tipeShiftId === 'Pagi') { bgColor = 'var(--pagi)'; statusText = configShift.Pagi.nama; jamText = configShift.Pagi.jam; }
-            else if (tipeShiftId === 'Sore') { bgColor = 'var(--sore)'; statusText = configShift.Sore.nama; jamText = configShift.Sore.jam; }
-            else if (tipeShiftId === 'Malam') { bgColor = 'var(--malam)'; statusText = configShift.Malam.nama; jamText = configShift.Malam.jam; }
-            else if (tipeShiftId === 'Cuti') { bgColor = 'var(--cuti)'; statusText = "Cuti Tahunan"; jamText = "Izin Resmi"; }
-            else if (tipeShiftId === 'Sakit') { bgColor = 'var(--sakit)'; statusText = "Sakit / Absen"; jamText = "Surat Dokter"; }
-            else if (tipeShiftId === 'Lembur') { 
-                bgColor = 'var(--lembur)'; 
-                statusText = "⚡ LEMBUR KERJA"; 
-                jamText = user.infoLembur && user.infoLembur[stringTanggal] ? user.infoLembur[stringTanggal] : "Jam Kerja Ekstra";
-            }
-
-            cell.style.backgroundColor = bgColor;
-            if(stringTanggal === "2026-05-17") cell.style.cssText += "border: 2px dashed #4f46e5; box-shadow: inset 0 0 8px rgba(0,0,0,0.25);";
-
-            cell.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <div class="${(tanggalTarget.getDay()===0 || isTanggalMerah)?'day-num red-text':'day-num'}">${hari}</div>
+            // 2. Render ke Daftar Kelola Karyawan (Kanan)
+            const item = document.createElement('div');
+            item.className = 'karyawan-item';
+            item.innerHTML = `
+                <div class="karyawan-info">
+                    <span><strong>${k.nama}</strong></span>
+                    <span class="karyawan-dept">${k.dept}</span>
                 </div>
-                ${isTanggalMerah ? `<div class="holiday-info" title="${namaLibur}">${namaLibur}</div>` : ''}
-                <div class="day-status">${statusText}<span class="day-time">${jamText}</span></div>
+                <button onclick="hapusKaryawan(${k.id})" class="btn btn-danger admin-btn" style="padding:4px 8px; font-size:12px;">Hapus</button>
             `;
-            grid.appendChild(cell);
-        }
-    }
+            listContainer.appendChild(item);
 
-    function changeMonth(arah) {
-        let newMonth = currentDate.getMonth() + arah;
-        if(newMonth >= 4 && newMonth <= 11) { currentDate.setMonth(newMonth); renderCalendar(); }
-    }
-
-    function toggleFormPilihan() {
-        const jenis = document.getElementById('jenis').value;
-        document.getElementById('tukar-opsi').style.display = (jenis === 'Tukar') ? 'block' : 'none';
-        document.getElementById('lembur-opsi').style.display = (jenis === 'Lembur') ? 'block' : 'none';
-    }
-
-    function saveData() {
-        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
-        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
-        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
-    }
-
-    document.getElementById('form-karyawan').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if(!isAdmin) return alert("Akses ditolak!");
-        const nama = document.getElementById('nama-baru').value;
-        const urutanPola = document.getElementById('pola-start').value;
-        const editId = document.getElementById('edit-id-karyawan').value;
-
-        if (editId) {
-            const k = listKaryawan.find(item => item.id === editId);
-            if(k) { k.nama = nama; k.urutanPola = urutanPola; }
-            cancelEditKaryawan();
-        } else {
-            const id = 'k_' + Date.now();
-            listKaryawan.push({ id, nama, urutanPola, modifikasi: {}, infoLembur: {} });
-            karyawanAktifId = id;
-            document.getElementById('form-karyawan').reset();
-        }
-        saveData(); updateKomponenKaryawan(); renderCalendar();
-    });
-
-    document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
-        e.preventDefault();
-        if(!isAdmin) return alert("Akses ditolak!");
-        const targetUserId = document.getElementById('input-karyawan').value;
-        const jenis = document.getElementById('jenis').value;
-        const tanggal = document.getElementById('tanggal').value;
-        const keterangan = document.getElementById('keterangan').value;
-        const shiftBaru = document.getElementById('shift-baru').value;
-        
-        const jamStart = document.getElementById('lembur-jam-start').value;
-        const jamEnd = document.getElementById('lembur-jam-end').value;
-        const gantiKaryawanId = document.getElementById('lembur-gantikan-siapa').value;
-
-        const editLogId = document.getElementById('edit-id-log').value;
-        const user = listKaryawan.find(k => k.id === targetUserId);
-        if (!user) return;
-
-        let statusFinal = jenis; 
-        let infoTeks = keterangan;
-
-        if (jenis === 'Tukar') {
-            statusFinal = shiftBaru;
-            infoTeks = `Tukar ke ${shiftBaru} (${keterangan})`;
-        } else if (jenis === 'Lembur') {
-            infoTeks = `Jam ${jamStart} - ${jamEnd} WIB. `;
-            if(gantiKaryawanId) {
-                const kDiberhentikan = listKaryawan.find(k => k.id === gantiKaryawanId);
-                infoTeks += `[Pengganti Absen: ${kDiberhentikan ? kDiberhentikan.nama : ''}] - ${keterangan}`;
-            } else {
-                infoTeks += `[Lembur Mandiri] - ${keterangan}`;
-            }
-        }
-
-        if (editLogId) {
-            const dataLama = logPengajuan.find(item => item.id === editLogId);
-            if (dataLama) {
-                const userLama = listKaryawan.find(k => k.id === dataLama.karyawanId);
-                if (userLama) {
-                    delete userLama.modifikasi[dataLama.tanggal];
-                    if(userLama.infoLembur) delete userLama.infoLembur[dataLama.tanggal];
-                }
-                
-                dataLama.karyawanId = targetUserId;
-                dataLama.namaKaryawan = user.nama;
-                dataLama.jenis = jenis;
-                dataLama.tanggal = tanggal;
-                dataLama.statusShift = statusFinal;
-                dataLama.info = infoTeks;
-                dataLama.gantiKaryawanId = gantiKaryawanId;
-                dataLama.jamStart = jamStart;
-                dataLama.jamEnd = jamEnd;
-            }
-            cancelEditKegiatan();
-        } else {
-            const newLog = {
-                id: 'log_' + Date.now(),
-                karyawanId: targetUserId,
-                namaKaryawan: user.nama,
-                jenis: jenis,
-                tanggal: tanggal,
-                statusShift: statusFinal,
-                info: infoTeks,
-                gantiKaryawanId: gantiKaryawanId,
-                jamStart: jamStart,
-                jamEnd: jamEnd
-            };
-            logPengajuan.unshift(newLog);
-        }
-
-        user.modifikasi[tanggal] = statusFinal;
-        if(jenis === 'Lembur') {
-            if(!user.infoLembur) user.infoLembur = {};
-            user.infoLembur[tanggal] = `${jamStart} - ${jamEnd} WIB`;
-        }
-
-        saveData(); renderCalendar(); renderLog();
-        document.getElementById('form-kegiatan').reset();
-        toggleFormPilihan();
-    });
-
-    function pemicuEditKegiatan(id) {
-        if(!isAdmin) return;
-        const item = logPengajuan.find(log => log.id === id);
-        if (!item) return;
-
-        document.getElementById('edit-id-log').value = item.id;
-        document.getElementById('input-karyawan').value = item.karyawanId;
-        document.getElementById('jenis').value = item.jenis;
-        document.getElementById('tanggal').value = item.tanggal;
-        
-        sinkronisasiOpsiLembur();
-        toggleFormPilihan();
-
-        if (item.jenis === 'Tukar') {
-            document.getElementById('shift-baru').value = item.statusShift;
-            const match = item.info.match(/\(([^)]+)\)/);
-            document.getElementById('keterangan').value = match ? match[1] : item.info;
-        } else if (item.jenis === 'Lembur') {
-            document.getElementById('lembur-jam-start').value = item.jamStart || "15:00";
-            document.getElementById('lembur-jam-end').value = item.jamEnd || "23:00";
-            document.getElementById('lembur-gantikan-siapa').value = item.gantiKaryawanId || "";
-            let desMurni = item.info.split('] - ')[1] || item.info;
-            document.getElementById('keterangan').value = desMurni;
-        } else {
-            document.getElementById('keterangan').value = item.info;
-        }
-
-        document.getElementById('form-kegiatan-title').innerText = "Update Data Kegiatan / Lembur";
-        document.getElementById('btn-submit-kegiatan').innerText = "Update & Sinkronisasi";
-        document.getElementById('btn-submit-kegiatan').style.background = "var(--warning)";
-        document.getElementById('btn-batal-kegiatan').style.display = "inline-block";
-    }
-
-    function cancelEditKegiatan() {
-        document.getElementById('edit-id-log').value = "";
-        document.getElementById('form-kegiatan').reset();
-        toggleFormPilihan();
-
-        document.getElementById('form-kegiatan-title').innerText = "Input Izin / Tukar / Lembur";
-        document.getElementById('btn-submit-kegiatan').innerText = "Simpan ke Kalender";
-        document.getElementById('btn-submit-kegiatan').style.background = "var(--success)";
-        document.getElementById('btn-batal-kegiatan').style.display = "none";
-    }
-
-    function hapusKegiatan(id) {
-        if(!isAdmin) return;
-        const item = logPengajuan.find(log => log.id === id);
-        if (item && confirm(`Batalkan agenda ${item.jenis} untuk ${item.namaKaryawan} pada tanggal ${item.tanggal}?`)) {
-            const user = listKaryawan.find(k => k.id === item.karyawanId);
-            if (user) {
-                delete user.modifikasi[item.tanggal];
-                if(user.infoLembur) delete user.infoLembur[item.tanggal];
-            }
-            logPengajuan = logPengajuan.filter(log => log.id !== id);
-            if(document.getElementById('edit-id-log').value === id) cancelEditKegiatan();
-            saveData(); renderCalendar(); renderLog();
-        }
-    }
-
-    function renderLog() {
-        const tbody = document.getElementById('log-tabel');
-        tbody.innerHTML = '';
-        if(logPengajuan.length === 0){
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9ca3af;">Belum ada riwayat aktivitas manual</td></tr>';
-            return;
-        }
-        logPengajuan.forEach(item => {
-            let badgeBg = item.jenis==='Lembur'?'var(--lembur)':item.jenis==='Tukar'?'#e5e7eb':item.jenis==='Cuti'?'var(--cuti)':'var(--sakit)';
-            let colorText = item.jenis==='Lembur'?'#111827':'inherit';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><b>${item.tanggal}</b></td>
-                <td>${item.namaKaryawan}</td>
-                <td><span style="padding:2px 6px; border-radius:4px; font-weight:bold; background:${badgeBg}; color:${colorText}; font-size:11px;">${item.jenis}</span></td>
-                <td>${item.info}</td>
-                <td class="action-buttons ${!isAdmin?'hidden-feature':''}">
-                    <button class="btn-warning" onclick="pemicuEditKegiatan('${item.id}')">Edit</button>
-                    <button class="btn-danger" onclick="hapusKegiatan('${item.id}')">Hapus</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
+            // 3. Masukkan ke Dropdown Form Pengajuan (Bawah)
+            const opt = document.createElement('option');
+            opt.value = k.nama;
+            opt.innerText = `${k.nama} (${k.dept})`;
+            selectForm.appendChild(opt);
         });
     }
 
-    // Eksekusi inisialisasi awal pembatasan akses
-    if (isAdmin) {
-        terapkanModeAksesAdmin();
-    } else {
-        terapkanModePembatasanViewer();
+    // Aksi Tambah Karyawan (Hanya berfungsi mulus di Mode Admin)
+    function tambahKaryawan(e) {
+        e.preventDefault();
+        if (!isAdmin) { alertAksesDitolak(); return; }
+
+        const nama = document.getElementById('namaKaryawan').value;
+        const dept = document.getElementById('deptKaryawan').value;
+        const id = Date.now();
+
+        dbKaryawan.push({ id, nama, dept });
+        localStorage.setItem('db_karyawan', JSON.stringify(dbKaryawan));
+        
+        document.getElementById('karyawanForm').reset();
+        renderKaryawanDanRoster();
+
+        Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Karyawan baru berhasil didaftarkan!', timer: 1500, showConfirmButton: false });
     }
 
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+    // Aksi Hapus Karyawan (Hanya berfungsi mulus di Mode Admin)
+    function hapusKaryawan(id) {
+        if (!isAdmin) { alertAksesDitolak(); return; }
+
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data jadwal karyawan ini juga akan dihapus dari sistem roster!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya, Hapus!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dbKaryawan = dbKaryawan.filter(k => k.id !== id);
+                localStorage.setItem('db_karyawan', JSON.stringify(dbKaryawan));
+                renderKaryawanDanRoster();
+                Swal.fire('Terhapus!', 'Data karyawan berhasil dihapus.', 'success');
+            }
+        });
+    }
+
+    // Aksi Kirim Form Pengajuan (BISA DIAKSES SIAPA SAJA / BEBAS LOCK)
+    function kirimPengajuan(e) {
+        e.preventDefault();
+        const nama = document.getElementById('formNamaKaryawan').value;
+        const jenis = document.getElementById('formJenis').value;
+        const tanggal = document.getElementById('formTanggal').value;
+        const alasan = document.getElementById('formAlasan').value;
+
+        // Simulasi berhasil kirim data (Bisa dikembangkan dikirim ke Email/Telegram/WhatsApp)
+        Swal.fire({
+            icon: 'success',
+            title: 'Pengajuan Terkirim!',
+            html: `Halo <b>${nama}</b>, pengajuan <b>${jenis}</b> Anda untuk tanggal ${tanggal} berhasil disimpan ke sistem dan menunggu konfirmasi atasan.`,
+            confirmButtonColor: '#2563eb'
+        });
+
+        document.getElementById('formPengajuan').reset();
+    }
 </script>
 
 </body>
