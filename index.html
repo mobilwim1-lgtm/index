@@ -344,14 +344,15 @@
 
                     <!-- OPSIONAL KHUSUS LEMBUR -->
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
+                        <p style="font-size: 11px; margin-top:0; margin-bottom: 8px; color: #92400e; font-weight: bold;">*Tentukan Total Jam Kerja Hari Ini (Shift + Lembur)</p>
                         <div class="flex-row" style="margin-bottom: 8px;">
                             <div>
-                                <label for="lembur-jam-start">Jam Mulai Lembur:</label>
-                                <input type="time" id="lembur-jam-start" value="15:00">
+                                <label for="lembur-jam-start">Jam Masuk Kerja:</label>
+                                <input type="time" id="lembur-jam-start" value="07:00">
                             </div>
                             <div>
-                                <label for="lembur-jam-end">Jam Selesai:</label>
-                                <input type="time" id="lembur-jam-end" value="23:00">
+                                <label for="lembur-jam-end">Jam Pulang Kerja:</label>
+                                <input type="time" id="lembur-jam-end" value="18:00">
                             </div>
                         </div>
                         <label for="lembur-gantikan-siapa">Menggantikan Karyawan Absen? (Opsional):</label>
@@ -958,7 +959,7 @@
 
             user.modifikasi[tanggal] = 'Lembur';
             if(!user.infoLembur) user.infoLembur = {};
-            user.infoLembur[tanggal] = `${jamStart} - ${jamEnd} WIB`;
+            user.infoLembur[tanggal] = `Masuk: ${jamStart} | Plg: ${jamEnd}`;
         } else {
             user.modifikasi[tanggal] = statusFinal;
         }
@@ -1011,8 +1012,8 @@
             const match = item.info.match(/\(([^)]+)\)$/);
             document.getElementById('keterangan').value = match ? match[1] : item.info;
         } else if (item.jenis === 'Lembur') {
-            document.getElementById('lembur-jam-start').value = item.jamStart || "15:00";
-            document.getElementById('lembur-jam-end').value = item.jamEnd || "23:00";
+            document.getElementById('lembur-jam-start').value = item.jamStart || "07:00";
+            document.getElementById('lembur-jam-end').value = item.jamEnd || "18:00";
             document.getElementById('lembur-gantikan-siapa').value = item.gantiKaryawanId || "";
             document.getElementById('keterangan').value = item.info.split('] - ')[1] || item.info;
         } else { document.getElementById('keterangan').value = item.info; }
