@@ -202,7 +202,7 @@
 
 <div class="container">
     <div class="app-signature" id="top-author-watermark">
-        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.0 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
+        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.1 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
     </div>
 
     <div class="admin-bar">
@@ -281,7 +281,7 @@
                     <input type="hidden" id="edit-id-log" value="">
 
                     <label for="input-karyawan">Pilih Karyawan:</label>
-                    <select id="input-karyawan" onchange="sinkronisasiOpsiLembur()" required></select>
+                    <select id="input-karyawan" onchange="sinkronisasiOpsiDropdown()" required></select>
 
                     <div class="flex-row">
                         <div>
@@ -289,7 +289,7 @@
                             <select id="jenis" onchange="toggleFormPilihan()">
                                 <option value="Cuti">Cuti</option>
                                 <option value="Sakit">Sakit</option>
-                                <option value="Tukar">Tukar Shift</option>
+                                <option value="Tukar">Tukar Shift / Siklus</option>
                                 <option value="Lembur">Kerja Lembur</option>
                             </select>
                         </div>
@@ -299,16 +299,50 @@
                         </div>
                     </div>
 
-                    <div id="tukar-opsi" style="display: none;">
-                        <label for="shift-baru">Ubah Jadwal Menjadi:</label>
-                        <select id="shift-baru">
-                            <option value="Pagi">Shift 1 Pagi</option>
-                            <option value="Sore">Shift 2 Sore</option>
-                            <option value="Malam">Shift 3 Malam</option>
-                            <option value="Libur">Off (Libur)</option>
+                    <!-- OPSIONAL KHUSUS TUKAR -->
+                    <div id="tukar-opsi" style="display: none; background: #eff6ff; padding: 10px; border-radius: 6px; border: 1px solid #bfdbfe; margin-top: 5px;">
+                        <label for="tipe-tukar">Mode Tukar Jadwal:</label>
+                        <select id="tipe-tukar" onchange="toggleTipeTukar()">
+                            <option value="manual_1hari">1. Ubah Jadwal 1 Hari Saja (Manual)</option>
+                            <option value="karyawan_1hari">2. Tukar Jadwal 1 Hari dengan Karyawan Lain</option>
+                            <option value="karyawan_permanen">3. Tukar SIKLUS PERMANEN dgn Karyawan Lain</option>
+                            <option value="pola_permanen">4. Mulai Siklus Baru (Ubah Pola Permanen)</option>
                         </select>
+
+                        <!-- Panel Manual 1 Hari -->
+                        <div id="tukar-manual-1hari" class="tukar-panel" style="margin-top: 10px;">
+                            <label for="shift-baru">Ubah Jadwal Menjadi:</label>
+                            <select id="shift-baru">
+                                <option value="Pagi">Shift 1 Pagi</option>
+                                <option value="Sore">Shift 2 Sore</option>
+                                <option value="Malam">Shift 3 Malam</option>
+                                <option value="Libur">Off (Libur)</option>
+                            </select>
+                        </div>
+
+                        <!-- Panel Tukar Karyawan -->
+                        <div id="tukar-karyawan" class="tukar-panel" style="margin-top: 10px; display: none;">
+                            <label for="tukar-dengan-karyawan">Pilih Karyawan Target:</label>
+                            <select id="tukar-dengan-karyawan"></select>
+                            <p id="karyawan-permanen-note" style="display:none; color: #b91c1c; font-size: 11px; margin-top:4px; font-weight:bold;">
+                                *Kalender Anda akan otomatis menyesuaikan dengan Karyawan ini. Pola siklus kalian akan SALING BERTUKAR SETERUSNYA mulai tanggal ini.
+                            </p>
+                        </div>
+
+                        <!-- Panel Ganti Pola -->
+                        <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
+                            <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
+                            <select id="pola-baru-tukar">
+                                <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
+                                <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
+                                <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
+                                <option value="6">Hari ke-7: Off / Libur Pertama</option>
+                            </select>
+                            <p style="font-size: 11px; color: #b91c1c; margin-top: 4px; font-weight:bold;">*Kalender Anda akan berganti mengikuti urutan siklus posisi ini seterusnya.</p>
+                        </div>
                     </div>
 
+                    <!-- OPSIONAL KHUSUS LEMBUR -->
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
                         <div class="flex-row" style="margin-bottom: 8px;">
                             <div>
@@ -431,7 +465,6 @@
             btnAdmin.innerText = "Logout Admin 🔓";
             btnAdmin.style.background = "var(--danger)";
             
-            // Membuka kunci panel khusus admin
             overlayKaryawan.style.display = "none";
             overlayGlobal.style.display = "none";
             
@@ -443,11 +476,9 @@
             btnAdmin.innerText = "Login Admin 🔑";
             btnAdmin.style.background = "var(--primary)";
             
-            // Mengunci panel kelola karyawan dan config global
             overlayKaryawan.style.display = "flex";
             overlayGlobal.style.display = "flex";
             
-            // Menyembunyikan tombol edit/hapus log untuk user biasa
             headersAksiTabel.forEach(h => h.style.display = "none");
             if(headerAksiLog) headerAksiLog.style.display = "none";
         }
@@ -488,10 +519,10 @@
     };
 
     const defaultKaryawan = [
-        { id: "k1", nama: "Adlin", urutanPola: 0, modifikasi: {}, infoLembur: {} },  
-        { id: "k2", nama: "Rizky", urutanPola: 2, modifikasi: {}, infoLembur: {} },  
-        { id: "k3", nama: "Rulli", urutanPola: 4, modifikasi: {}, infoLembur: {} },  
-        { id: "k4", nama: "Agam", urutanPola: 6, modifikasi: {}, infoLembur: {} }    
+        { id: "k1", nama: "Adlin", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
+        { id: "k2", nama: "Rizky", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
+        { id: "k3", nama: "Rulli", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
+        { id: "k4", nama: "Agam", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }    
     ];
 
     const tanggalMerah2026 = {
@@ -509,12 +540,41 @@
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-    function hitungShiftUser(tanggal, urutanPola) {
+    // MESIN PENGHITUNG SIKLUS (TERMASUK DINAMIS PERUBAHAN SIKLUS)
+    function hitungShiftUserObj(tanggal, user) {
+        let polaAktif = parseInt(user.urutanPola);
+
+        // Jika user punya riwayat pergantian pola, cari pola aktif pada tanggal ini
+        if (user.riwayatPola) {
+            const stringTanggal = `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, '0')}-${String(tanggal.getDate()).padStart(2, '0')}`;
+            let riwayatDates = Object.keys(user.riwayatPola).sort();
+            for (let rDate of riwayatDates) {
+                if (stringTanggal >= rDate) {
+                    polaAktif = parseInt(user.riwayatPola[rDate]);
+                }
+            }
+        }
+
         const selisihWaktu = tanggal.getTime() - anchorDate.getTime();
         const selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
-        let index = (selisihHari + parseInt(urutanPola)) % 8;
+        let index = (selisihHari + polaAktif) % 8;
         if (index < 0) index += 8;
         return polaShiftBase[index];
+    }
+
+    // Mendapatkan offset/pola aktif pada suatu tanggal tanpa modifikasi harian
+    function getActiveOffset(dateObj, user) {
+        let polaAktif = parseInt(user.urutanPola);
+        if (user.riwayatPola) {
+            const stringTanggal = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+            let riwayatDates = Object.keys(user.riwayatPola).sort();
+            for (let rDate of riwayatDates) {
+                if (stringTanggal >= rDate) {
+                    polaAktif = parseInt(user.riwayatPola[rDate]);
+                }
+            }
+        }
+        return polaAktif;
     }
 
     function renderLegend() {
@@ -594,19 +654,29 @@
             `;
             tabelKelola.appendChild(tr);
         });
-        sinkronisasiOpsiLembur();
+        sinkronisasiOpsiDropdown();
     }
 
-    function sinkronisasiOpsiLembur() {
-        const idKaryawanLembur = document.getElementById('input-karyawan').value;
+    function sinkronisasiOpsiDropdown() {
+        const idKaryawanAktif = document.getElementById('input-karyawan').value;
+        
         const dropdownGanti = document.getElementById('lembur-gantikan-siapa');
         dropdownGanti.innerHTML = '<option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>';
         
+        const dropdownTukar = document.getElementById('tukar-dengan-karyawan');
+        dropdownTukar.innerHTML = ''; 
+        
         listKaryawan.forEach(k => {
-            if(k.id !== idKaryawanLembur) {
-                let opt = document.createElement('option');
-                opt.value = k.id; opt.innerText = `Gantikan: ${k.nama}`;
-                dropdownGanti.appendChild(opt);
+            if(k.id !== idKaryawanAktif) {
+                // Dropdown lembur
+                let optLembur = document.createElement('option');
+                optLembur.value = k.id; optLembur.innerText = `Gantikan: ${k.nama}`;
+                dropdownGanti.appendChild(optLembur);
+
+                // Dropdown tukar dengan karyawan lain
+                let optTukar = document.createElement('option');
+                optTukar.value = k.id; optTukar.innerText = `${k.nama}`;
+                dropdownTukar.appendChild(optTukar);
             }
         });
     }
@@ -678,7 +748,9 @@
             
             const cell = document.createElement('div'); cell.className = 'day-cell';
 
-            let tipeShiftId = user.modifikasi[stringTanggal] || hitungShiftUser(tanggalTarget, user.urutanPola);
+            // Menghitung jenis Shift dengan melihat modifikasi manual harian, jika tidak ada fallback ke riwayatPola / base pola
+            let tipeShiftId = user.modifikasi[stringTanggal] || hitungShiftUserObj(tanggalTarget, user);
+            
             const namaLibur = tanggalMerah2026[stringTanggal];
             const isTanggalMerah = !!namaLibur;
 
@@ -717,6 +789,25 @@
         const jenis = document.getElementById('jenis').value;
         document.getElementById('tukar-opsi').style.display = (jenis === 'Tukar') ? 'block' : 'none';
         document.getElementById('lembur-opsi').style.display = (jenis === 'Lembur') ? 'block' : 'none';
+        
+        if (jenis === 'Tukar') toggleTipeTukar();
+    }
+
+    function toggleTipeTukar() {
+        const tipe = document.getElementById('tipe-tukar').value;
+        document.querySelectorAll('.tukar-panel').forEach(el => el.style.display = 'none');
+        document.getElementById('karyawan-permanen-note').style.display = 'none';
+
+        if (tipe === 'manual_1hari') {
+            document.getElementById('tukar-manual-1hari').style.display = 'block';
+        } else if (tipe === 'karyawan_1hari' || tipe === 'karyawan_permanen') {
+            document.getElementById('tukar-karyawan').style.display = 'block';
+            if (tipe === 'karyawan_permanen') {
+                document.getElementById('karyawan-permanen-note').style.display = 'block';
+            }
+        } else if (tipe === 'pola_permanen') {
+            document.getElementById('tukar-pola-permanen').style.display = 'block';
+        }
     }
 
     function saveData() {
@@ -737,7 +828,7 @@
             cancelEditKaryawan();
         } else {
             const id = 'k_' + Date.now();
-            listKaryawan.push({ id, nama, urutanPola, modifikasi: {}, infoLembur: {} });
+            listKaryawan.push({ id, nama, urutanPola, modifikasi: {}, infoLembur: {}, riwayatPola: {} });
             karyawanAktifId = id;
             document.getElementById('form-karyawan').reset();
         }
@@ -745,15 +836,11 @@
     });
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
-        e.preventDefault(); // Bisa diakses publik tanpa validasi isAdmin
+        e.preventDefault();
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
         const tanggal = document.getElementById('tanggal').value;
         const keterangan = document.getElementById('keterangan').value;
-        const shiftBaru = document.getElementById('shift-baru').value;
-        const jamStart = document.getElementById('lembur-jam-start').value;
-        const jamEnd = document.getElementById('lembur-jam-end').value;
-        const gantiKaryawanId = document.getElementById('lembur-gantikan-siapa').value;
         const editLogId = document.getElementById('edit-id-log').value;
 
         const user = listKaryawan.find(k => k.id === targetUserId);
@@ -761,49 +848,133 @@
 
         let statusFinal = jenis; 
         let infoTeks = keterangan;
+        let gantiKaryawanId = "";
+        let tipeTukar = "";
+        let polaBaru = "";
+        let jamStart = "", jamEnd = "";
 
-        if (jenis === 'Tukar') {
-            statusFinal = shiftBaru; infoTeks = `Tukar ke ${shiftBaru} (${keterangan})`;
-        } else if (jenis === 'Lembur') {
-            infoTeks = `Jam ${jamStart} - ${jamEnd} WIB. `;
-            if(gantiKaryawanId) {
-                const kDiberhentikan = listKaryawan.find(k => k.id === gantiKaryawanId);
-                infoTeks += `[Ganti: ${kDiberhentikan ? kDiberhentikan.nama : ''}] - ${keterangan}`;
-            } else { infoTeks += `[Lembur Mandiri] - ${keterangan}`; }
-        }
-
+        // Hapus & Rollback data lama jika sedang dalam mode Edit
         if (editLogId) {
-            // Edit log riwayat modifikasi tetap diamankan hanya untuk admin jika sedang mode edit
             if (!isAdmin) { alert("Maaf, mengedit log yang sudah masuk membutuhkan hak akses Admin."); return; }
             const dataLama = logPengajuan.find(item => item.id === editLogId);
             if (dataLama) {
                 const userLama = listKaryawan.find(k => k.id === dataLama.karyawanId);
                 if (userLama) {
-                    delete userLama.modifikasi[dataLama.tanggal];
+                    if (dataLama.jenis === 'Tukar') {
+                        if (dataLama.tipeTukar === 'karyawan_permanen' || dataLama.tipeTukar === 'pola_permanen') {
+                            if (userLama.riwayatPola) delete userLama.riwayatPola[dataLama.tanggal];
+                        } else {
+                            delete userLama.modifikasi[dataLama.tanggal];
+                        }
+                    } else {
+                        delete userLama.modifikasi[dataLama.tanggal];
+                    }
+
                     if(userLama.infoLembur) delete userLama.infoLembur[dataLama.tanggal];
+                    
+                    // Rollback target user (jika melibatkan karyawan lain)
+                    if (dataLama.jenis === 'Tukar' && (dataLama.tipeTukar === 'karyawan_1hari' || dataLama.tipeTukar === 'karyawan_permanen') && dataLama.gantiKaryawanId) {
+                        const targetLama = listKaryawan.find(k => k.id === dataLama.gantiKaryawanId);
+                        if (targetLama) {
+                            if (dataLama.tipeTukar === 'karyawan_permanen') {
+                                if(targetLama.riwayatPola) delete targetLama.riwayatPola[dataLama.tanggal];
+                            } else {
+                                delete targetLama.modifikasi[dataLama.tanggal];
+                            }
+                        }
+                    }
                 }
-                dataLama.karyawanId = targetUserId; dataLama.namaKaryawan = user.nama;
-                dataLama.jenis = jenis; dataLama.tanggal = tanggal; dataLama.statusShift = statusFinal;
-                dataLama.info = infoTeks; dataLama.gantiKaryawanId = gantiKaryawanId;
-                dataLama.jamStart = jamStart; dataLama.jamEnd = jamEnd;
+                logPengajuan = logPengajuan.filter(item => item.id !== editLogId);
             }
-            cancelEditKegiatan();
-        } else {
-            logPengajuan.unshift({
-                id: 'log_' + Date.now(), karyawanId: targetUserId, namaKaryawan: user.nama,
-                jenis, tanggal, statusShift: statusFinal, info: infoTeks, gantiKaryawanId, jamStart, jamEnd
-            });
         }
 
-        user.modifikasi[tanggal] = statusFinal;
-        if(jenis === 'Lembur') {
+        // --- PEMROSESAN LOGIKA BERDASARKAN JENIS ---
+        if (jenis === 'Tukar') {
+            tipeTukar = document.getElementById('tipe-tukar').value;
+            
+            if (tipeTukar === 'manual_1hari') {
+                statusFinal = document.getElementById('shift-baru').value;
+                infoTeks = `Ubah shift 1 hari ke ${statusFinal} (${keterangan})`;
+                user.modifikasi[tanggal] = statusFinal;
+            } 
+            else if (tipeTukar === 'karyawan_1hari' || tipeTukar === 'karyawan_permanen') {
+                gantiKaryawanId = document.getElementById('tukar-dengan-karyawan').value;
+                const targetUser = listKaryawan.find(k => k.id === gantiKaryawanId);
+                if (!targetUser) { alert("Pilih karyawan target terlebih dahulu!"); return; }
+                
+                if (tipeTukar === 'karyawan_1hari') {
+                    // Tukar Shift 1 Hari: Ambil base shift sebelum modifikasi pada tanggal tsb
+                    let myBase = hitungShiftUserObj(new Date(tanggal), user);
+                    let targetBase = hitungShiftUserObj(new Date(tanggal), targetUser);
+                    
+                    user.modifikasi[tanggal] = targetBase;
+                    targetUser.modifikasi[tanggal] = myBase;
+                    
+                    statusFinal = targetBase; 
+                    infoTeks = `Tukar shift 1 hari dgn ${targetUser.nama} (${keterangan})`;
+                } else {
+                    // Tukar SIKLUS Permanen
+                    let myOffset = getActiveOffset(new Date(tanggal), user);
+                    let targetOffset = getActiveOffset(new Date(tanggal), targetUser);
+                    
+                    if(!user.riwayatPola) user.riwayatPola = {};
+                    if(!targetUser.riwayatPola) targetUser.riwayatPola = {};
+                    
+                    user.riwayatPola[tanggal] = targetOffset;
+                    targetUser.riwayatPola[tanggal] = myOffset;
+                    
+                    statusFinal = `Ikuti Siklus ${targetUser.nama}`;
+                    infoTeks = `Tukar siklus PERMANEN dgn ${targetUser.nama} (${keterangan})`;
+                }
+            } 
+            else if (tipeTukar === 'pola_permanen') {
+                let polaTargetPadaTanggalItu = document.getElementById('pola-baru-tukar').value;
+                
+                // Menghitung offset base berdasarkan rentang hari agar tepat jatuh pada jadwal yang diminta saat tanggal tersebut
+                let dateObj = new Date(tanggal);
+                let selisihWaktu = dateObj.getTime() - anchorDate.getTime();
+                let selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
+                let newOffset = (parseInt(polaTargetPadaTanggalItu) - selisihHari) % 8;
+                if (newOffset < 0) newOffset += 8;
+                
+                if(!user.riwayatPola) user.riwayatPola = {};
+                user.riwayatPola[tanggal] = newOffset;
+                polaBaru = polaTargetPadaTanggalItu; // Menyimpan histori index awal pilihan
+                
+                let namaPola = polaBaru==0?'Pagi Pertama':polaBaru==2?'Sore Pertama':polaBaru==4?'Malam Pertama':'Libur Pertama';
+                statusFinal = `Siklus ${namaPola}`;
+                infoTeks = `Mulai siklus baru dari ${namaPola} seterusnya (${keterangan})`;
+            }
+        } else if (jenis === 'Lembur') {
+            jamStart = document.getElementById('lembur-jam-start').value;
+            jamEnd = document.getElementById('lembur-jam-end').value;
+            gantiKaryawanId = document.getElementById('lembur-gantikan-siapa').value;
+            
+            infoTeks = `Jam ${jamStart} - ${jamEnd} WIB. `;
+            if(gantiKaryawanId) {
+                const kDiberhentikan = listKaryawan.find(k => k.id === gantiKaryawanId);
+                infoTeks += `[Ganti: ${kDiberhentikan ? kDiberhentikan.nama : ''}] - ${keterangan}`;
+            } else { infoTeks += `[Lembur Mandiri] - ${keterangan}`; }
+
+            user.modifikasi[tanggal] = 'Lembur';
             if(!user.infoLembur) user.infoLembur = {};
             user.infoLembur[tanggal] = `${jamStart} - ${jamEnd} WIB`;
+        } else {
+            user.modifikasi[tanggal] = statusFinal;
         }
 
+        // Menyimpan log
+        logPengajuan.unshift({
+            id: editLogId || ('log_' + Date.now()), 
+            karyawanId: targetUserId, namaKaryawan: user.nama,
+            jenis, tanggal, statusShift: statusFinal, info: infoTeks, 
+            gantiKaryawanId, jamStart, jamEnd,
+            tipeTukar, polaBaru
+        });
+
         saveData(); renderCalendar(); renderLog();
-        document.getElementById('form-kegiatan').reset(); toggleFormPilihan();
-        alert("Data berhasil tersimpan ke kalender!");
+        cancelEditKegiatan(); // reset form UI
+        alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
 
     function pemicuEditKegiatan(id) {
@@ -815,11 +986,29 @@
         document.getElementById('jenis').value = item.jenis;
         document.getElementById('tanggal').value = item.tanggal;
         
-        sinkronisasiOpsiLembur(); toggleFormPilihan();
+        sinkronisasiOpsiDropdown(); toggleFormPilihan();
 
         if (item.jenis === 'Tukar') {
-            document.getElementById('shift-baru').value = item.statusShift;
-            const match = item.info.match(/\(([^)]+)\)/);
+            let tipe = item.tipeTukar || 'manual_1hari';
+            document.getElementById('tipe-tukar').value = tipe;
+            toggleTipeTukar();
+
+            if (tipe === 'manual_1hari') {
+                document.getElementById('shift-baru').value = item.statusShift;
+            } else if (tipe === 'karyawan_1hari' || tipe === 'karyawan_permanen') {
+                document.getElementById('tukar-dengan-karyawan').value = item.gantiKaryawanId;
+            } else if (tipe === 'pola_permanen') {
+                // Konversi fallback jika belum tersimpan properti polaBaru
+                let val = item.polaBaru || 0;
+                if (!item.polaBaru && item.statusShift) {
+                    if (item.statusShift.includes('Sore')) val = 2;
+                    else if (item.statusShift.includes('Malam')) val = 4;
+                    else if (item.statusShift.includes('Libur')) val = 6;
+                }
+                document.getElementById('pola-baru-tukar').value = val;
+            }
+            
+            const match = item.info.match(/\(([^)]+)\)$/);
             document.getElementById('keterangan').value = match ? match[1] : item.info;
         } else if (item.jenis === 'Lembur') {
             document.getElementById('lembur-jam-start').value = item.jamStart || "15:00";
@@ -848,7 +1037,33 @@
         const item = logPengajuan.find(log => log.id === id);
         if (item && confirm(`Batalkan agenda ${item.jenis}?`)) {
             const user = listKaryawan.find(k => k.id === item.karyawanId);
-            if (user) { delete user.modifikasi[item.tanggal]; if(user.infoLembur) delete user.infoLembur[item.tanggal]; }
+            if (user) { 
+                if (item.jenis === 'Tukar') {
+                    if (item.tipeTukar === 'karyawan_permanen') {
+                        if (user.riwayatPola) delete user.riwayatPola[item.tanggal];
+                        if (item.gantiKaryawanId) {
+                            const target = listKaryawan.find(k => k.id === item.gantiKaryawanId);
+                            if (target && target.riwayatPola) delete target.riwayatPola[item.tanggal];
+                        }
+                    } 
+                    else if (item.tipeTukar === 'pola_permanen') {
+                        if (user.riwayatPola) delete user.riwayatPola[item.tanggal];
+                    } 
+                    else if (item.tipeTukar === 'karyawan_1hari') {
+                        delete user.modifikasi[item.tanggal];
+                        if (item.gantiKaryawanId) {
+                            const target = listKaryawan.find(k => k.id === item.gantiKaryawanId);
+                            if (target) delete target.modifikasi[item.tanggal];
+                        }
+                    } else {
+                        delete user.modifikasi[item.tanggal]; 
+                    }
+                } else {
+                    delete user.modifikasi[item.tanggal];
+                }
+                
+                if(user.infoLembur) delete user.infoLembur[item.tanggal]; 
+            }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
             cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
         }
@@ -884,6 +1099,11 @@
             tbody.appendChild(tr);
         });
     }
+
+    // Initialize list with new properties if loading from old localstorage
+    listKaryawan.forEach(k => {
+        if (!k.riwayatPola) k.riwayatPola = {};
+    });
 
     muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
 </script>
