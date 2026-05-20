@@ -432,7 +432,40 @@
     </div>
 </div>
 
-<script>
+<script> { 
+    const SCRIPT_URL = "PASTE_URL_WEB_APP_APPS_SCRIPT_ANDA_DISINI";
+    function simpanKeCloud() {
+    // Trik Content-Type text/plain digunakan khusus untuk mematikan proteksi CORS OPTIONS pada Google
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-Type": "text/plain" 
+        },
+        body: JSON.stringify(logPengajuan)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") console.log("Google Sheets berhasil diperbarui!");
+    })
+    .catch(err => console.error("Gagal sinkronisasi ke cloud:", err));
+}
+    function simpanKeCloud() {
+    // Trik Content-Type text/plain digunakan khusus untuk mematikan proteksi CORS OPTIONS pada Google
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-Type": "text/plain" 
+        },
+        body: JSON.stringify(logPengajuan)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.status === "success") console.log("Google Sheets berhasil diperbarui!");
+    })
+    .catch(err => console.error("Gagal sinkronisasi ke cloud:", err));
+}
     // --- SKRIP INTEGRITAS SECURITY HAK CIPTA ---
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', { value: 'Rizky SIL 1806', writable: false, configurable: false });
@@ -483,7 +516,7 @@
             headersAksiTabel.forEach(h => h.style.display = "none");
             if(headerAksiLog) headerAksiLog.style.display = "none";
         }
-        renderLog();
+        renderLog(); simpanKeCloud();
         updateKomponenKaryawan();
     }
 
@@ -709,7 +742,7 @@
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
             listKaryawan = listKaryawan.filter(k => k.id !== id);
             if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog(); simpanKeCloud();
         }
     }
 
@@ -816,7 +849,7 @@
 
 // Kode contoh integrasi saat menyimpan input transaksi baru ke Google Sheet:
 function kirimKeGoogleSheet(dataBaru) {
-    fetch(https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec, {
+    fetch(SCRIPT_URL, { 
         method: "POST",
         mode: "no-cors", // Membantu menghindari error CORS lintas domain sederhana
         headers: {
@@ -830,24 +863,22 @@ function kirimKeGoogleSheet(dataBaru) {
     .catch(error => console.error("Gagal sinkronisasi:", error));
 }
 
-// Sinkronisasi data dari Google Sheet saat website pertama kali dibuka (menggantikan localStorage muat awal):
-function sinkronisasiAmbilDataAwal() {
-    fetch(https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec)
-    .then(response => response.json())
-    .then(dataDariSheet => {
-        if(dataDariSheet && dataDariSheet.length > 0) {
-            logPengajuan = dataDariSheet;
-            renderLog(); // Perbarui tampilan tabel riwayat di website Anda
-            renderCalendar(); // Segarkan kalender web
+window.addEventListener('DOMContentLoaded', () => {
+    // Muat data langsung dari Google Sheets secara real-time
+    fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.length > 0) {
+            logPengajuan = data;
+            renderLog();
+            renderCalendar();
+            console.log("Database awal berhasil dimuat dari Google Sheets!");
         }
     })
-    .catch(error => console.error("Gagal memuat database Google Sheet:", error));
-}
-        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
-        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
-        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
-    }
-
+    .catch(err => {
+        console.error("Gagal memuat database cloud, beralih ke cadangan lokal:", err);
+    });
+});
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
@@ -1004,7 +1035,7 @@ function sinkronisasiAmbilDataAwal() {
             tipeTukar, polaBaru
         });
 
-        saveData(); renderCalendar(); renderLog();
+        saveData(); renderCalendar(); renderLog(); simpanKeCloud();
         cancelEditKegiatan(); // reset form UI
         alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
@@ -1097,7 +1128,7 @@ function sinkronisasiAmbilDataAwal() {
                 if(user.infoLembur) delete user.infoLembur[item.tanggal]; 
             }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
-            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
+            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog(); simpanKeCloud();
         }
     }
 
@@ -1137,7 +1168,7 @@ function sinkronisasiAmbilDataAwal() {
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
+    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode(); simpanKeCloud();
 </script>
 
 </body>
