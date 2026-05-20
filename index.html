@@ -299,7 +299,6 @@
                         </div>
                     </div>
 
-                    <!-- OPSIONAL KHUSUS TUKAR -->
                     <div id="tukar-opsi" style="display: none; background: #eff6ff; padding: 10px; border-radius: 6px; border: 1px solid #bfdbfe; margin-top: 5px;">
                         <label for="tipe-tukar">Mode Tukar Jadwal:</label>
                         <select id="tipe-tukar" onchange="toggleTipeTukar()">
@@ -309,7 +308,6 @@
                             <option value="pola_permanen">4. Mulai Siklus Baru (Ubah Pola Permanen)</option>
                         </select>
 
-                        <!-- Panel Manual 1 Hari -->
                         <div id="tukar-manual-1hari" class="tukar-panel" style="margin-top: 10px;">
                             <label for="shift-baru">Ubah Jadwal Menjadi:</label>
                             <select id="shift-baru">
@@ -320,7 +318,6 @@
                             </select>
                         </div>
 
-                        <!-- Panel Tukar Karyawan -->
                         <div id="tukar-karyawan" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="tukar-dengan-karyawan">Pilih Karyawan Target:</label>
                             <select id="tukar-dengan-karyawan"></select>
@@ -329,7 +326,6 @@
                             </p>
                         </div>
 
-                        <!-- Panel Ganti Pola -->
                         <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
                             <select id="pola-baru-tukar">
@@ -342,7 +338,6 @@
                         </div>
                     </div>
 
-                    <!-- OPSIONAL KHUSUS LEMBUR -->
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
                         <p style="font-size: 11px; margin-top:0; margin-bottom: 8px; color: #92400e; font-weight: bold;">*Tentukan Total Jam Kerja Hari Ini (Shift + Lembur)</p>
                         <div class="flex-row" style="margin-bottom: 8px;">
@@ -432,40 +427,10 @@
     </div>
 </div>
 
-<script> { 
-    const SCRIPT_URL = "PASTE_URL_WEB_APP_APPS_SCRIPT_ANDA_DISINI";
-    function simpanKeCloud() {
-    // Trik Content-Type text/plain digunakan khusus untuk mematikan proteksi CORS OPTIONS pada Google
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-            "Content-Type": "text/plain" 
-        },
-        body: JSON.stringify(logPengajuan)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === "success") console.log("Google Sheets berhasil diperbarui!");
-    })
-    .catch(err => console.error("Gagal sinkronisasi ke cloud:", err));
-}
-    function simpanKeCloud() {
-    // Trik Content-Type text/plain digunakan khusus untuk mematikan proteksi CORS OPTIONS pada Google
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-            "Content-Type": "text/plain" 
-        },
-        body: JSON.stringify(logPengajuan)
-    })
-    .then(res => res.json())
-    .then(data => {
-        if(data.status === "success") console.log("Google Sheets berhasil diperbarui!");
-    })
-    .catch(err => console.error("Gagal sinkronisasi ke cloud:", err));
-}
+<script>
+    // URL Web App Google Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
+
     // --- SKRIP INTEGRITAS SECURITY HAK CIPTA ---
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', { value: 'Rizky SIL 1806', writable: false, configurable: false });
@@ -516,7 +481,7 @@
             headersAksiTabel.forEach(h => h.style.display = "none");
             if(headerAksiLog) headerAksiLog.style.display = "none";
         }
-        renderLog(); simpanKeCloud();
+        renderLog();
         updateKomponenKaryawan();
     }
 
@@ -742,7 +707,7 @@
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
             listKaryawan = listKaryawan.filter(k => k.id !== id);
             if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog(); simpanKeCloud();
+            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
         }
     }
 
@@ -844,41 +809,65 @@
         }
     }
 
+    // MENYIMPAN DATA (LOCAL STORAGE + GOOGLE SHEET REAL-TIME)
     function saveData() {
-        const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
+        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
+        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
+        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
 
-// Kode contoh integrasi saat menyimpan input transaksi baru ke Google Sheet:
-function kirimKeGoogleSheet(dataBaru) {
-    fetch(SCRIPT_URL, { 
-        method: "POST",
-        mode: "no-cors", // Membantu menghindari error CORS lintas domain sederhana
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(dataBaru)
-    })
-    .then(() => {
-        console.log("Data berhasil dikirim ke Google Sheet secara Real-Time!");
-    })
-    .catch(error => console.error("Gagal sinkronisasi:", error));
-}
+        // Format pengiriman data terpadu ke cloud agar tersinkronisasi sempurna
+        const dataPaket = {
+            listKaryawan: listKaryawan,
+            logPengajuan: logPengajuan,
+            configShift: configShift
+        };
 
-window.addEventListener('DOMContentLoaded', () => {
-    // Muat data langsung dari Google Sheets secara real-time
-    fetch(SCRIPT_URL)
-    .then(res => res.json())
-    .then(data => {
-        if (data && data.length > 0) {
-            logPengajuan = data;
-            renderLog();
-            renderCalendar();
-            console.log("Database awal berhasil dimuat dari Google Sheets!");
-        }
-    })
-    .catch(err => {
-        console.error("Gagal memuat database cloud, beralih ke cadangan lokal:", err);
-    });
-});
+        fetch(SCRIPT_URL, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "text/plain" // Menghindari kendala pemblokiran CORS OPTIONS oleh Browser
+            },
+            body: JSON.stringify(dataPaket)
+        })
+        .then(res => res.json())
+        .then(response => {
+            console.log("Database Google Sheet Berhasil Sinkron Terkini:", response);
+        })
+        .catch(error => console.error("Gagal melakukan otomatisasi sinkronisasi cloud:", error));
+    }
+
+    // MEMUAT DATABASE DARI CLOUD SAAT HALAMAN DIBUKA
+    function sinkronisasiAmbilDataAwal() {
+        fetch(SCRIPT_URL)
+        .then(response => response.json())
+        .then(dataDariSheet => {
+            if(dataDariSheet) {
+                // Memetakan data bundle yang dikembalikan cloud ke sistem web aplikasi Anda
+                if (dataDariSheet.listKaryawan) listKaryawan = dataDariSheet.listKaryawan;
+                if (dataDariSheet.logPengajuan) logPengajuan = dataDariSheet.logPengajuan;
+                if (dataDariSheet.configShift) configShift = dataDariSheet.configShift;
+                
+                // Fallback pencocokan jika data dari sheet datang berupa array baris log saja
+                if (Array.isArray(dataDariSheet) && dataDariSheet.length > 0) {
+                    logPengajuan = dataDariSheet;
+                }
+
+                // Segarkan UI Roster Web berdasarkan isi ter-update Google Sheet
+                muatFormGlobal(); 
+                renderLegend(); 
+                updateKomponenKaryawan(); 
+                renderCalendar(); 
+                renderLog(); 
+                updateUIMode();
+                console.log("Data Cloud Berhasil Sinkron Masuk!");
+            }
+        })
+        .catch(error => {
+            console.error("Gagal menarik database Cloud Google Sheet, mengandalkan sistem lokal offline:", error);
+        });
+    }
+
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
@@ -1035,7 +1024,7 @@ window.addEventListener('DOMContentLoaded', () => {
             tipeTukar, polaBaru
         });
 
-        saveData(); renderCalendar(); renderLog(); simpanKeCloud();
+        saveData(); renderCalendar(); renderLog();
         cancelEditKegiatan(); // reset form UI
         alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
@@ -1128,7 +1117,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 if(user.infoLembur) delete user.infoLembur[item.tanggal]; 
             }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
-            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog(); simpanKeCloud();
+            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
         }
     }
 
@@ -1163,12 +1152,16 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initialize list with new properties if loading from old localstorage
+    // Initialize list dengan properti baru jika memuat dari localstorage lama
     listKaryawan.forEach(k => {
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode(); simpanKeCloud();
+    // Inisialisasi Tampilan Awal Situs
+    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
+    
+    // Jalankan penarikan data dari Google Sheets secara real-time saat halaman web dibuka
+    sinkronisasiAmbilDataAwal();
 </script>
 
 </body>
