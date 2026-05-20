@@ -447,6 +447,9 @@
     let isAdmin = false;
     const PASSWORD_ADMIN = "admin123";
 
+    // GLOBAL APP SCRIPT CONFIGURATION
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
+
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
         const btnAdmin = document.getElementById('btn-admin-auth');
@@ -781,72 +784,6 @@
         if(newMonth >= 4 && newMonth <= 11) { currentDate.setMonth(newMonth); renderCalendar(); }
     }
 
-    // --- INTEGRASI REAL-TIME GOOGLE SPREADSHEETS & APPS SCRIPT WEB APP ---
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
-
-    function saveData() {
-        // 1. Simpan cadangan ke LocalStorage internal browser
-        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
-        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
-        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
-
-        // 2. Kirim bungkusan data lengkap ke Google Apps Script (U.P Google Sheet)
-        const paketData = {
-            listKaryawan: listKaryawan,
-            logPengajuan: logPengajuan,
-            configShift: configShift
-        };
-        kirimKeGoogleSheet(paketData);
-    }
-
-    function kirimKeGoogleSheet(dataBaru) {
-        fetch(URL_WEB_APP, {
-            method: "POST",
-            mode: "no-cors", 
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(dataBaru)
-        })
-        .then(() => {
-            console.log("Data berhasil disinkronkan ke Google Sheet secara Real-Time!");
-        })
-        .catch(error => console.error("Gagal sinkronisasi ke Google Sheet:", error));
-    }
-
-    function sinkronisasiAmbilDataAwal() {
-        fetch(URL_WEB_APP)
-        .then(response => response.json())
-        .then(dataDariSheet => {
-            if (dataDariSheet) {
-                // Parsing data jika Google Sheets mengembalikan struktur data kustom terpusat
-                if (dataDariSheet.listKaryawan) listKaryawan = dataDariSheet.listKaryawan;
-                if (dataDariSheet.logPengajuan) logPengajuan = dataDariSheet.logPengajuan;
-                if (dataDariSheet.configShift) configShift = dataDariSheet.configShift;
-                
-                // Fallback otomatis jika Apps Script hanya me-return array log pengajuan secara sepihak
-                if (Array.isArray(dataDariSheet) && dataDariSheet.length > 0) {
-                    logPengajuan = dataDariSheet;
-                }
-                
-                // Segarkan ID Karyawan yang sedang dipantau di layar kalender
-                if (listKaryawan.length > 0) {
-                    karyawanAktifId = listKaryawan[0].id;
-                }
-                
-                // Re-render UI Web App secara global setelah database dari Cloud berhasil ditarik
-                muatFormGlobal(); 
-                renderLegend(); 
-                updateKomponenKaryawan(); 
-                renderCalendar(); 
-                renderLog();
-                console.log("Database Google Sheet berhasil dimuat & disinkronkan!");
-            }
-        })
-        .catch(error => console.error("Gagal memuat database online dari Google Sheet:", error));
-    }
-    // -------------------------------------------------------------
-
     function toggleFormPilihan() {
         const jenis = document.getElementById('jenis').value;
         document.getElementById('tukar-opsi').style.display = (jenis === 'Tukar') ? 'block' : 'none';
@@ -870,6 +807,75 @@
         } else if (tipe === 'pola_permanen') {
             document.getElementById('tukar-pola-permanen').style.display = 'block';
         }
+    }
+
+    // FUNGSI MENYIMPAN DATA (POST) KE GOOGLE SPREADSHEET REALTIME
+    function saveData() {
+        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
+        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
+        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
+
+        const payload = {
+            listKaryawan: listKaryawan,
+            logPengajuan: logPengajuan,
+            configShift: configShift
+        };
+
+        fetch(URL_WEB_APP, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            console.log("Sinkronisasi dua arah berhasil dikirim ke Google Spreadsheet!");
+        })
+        .catch(error => console.error("Gagal sinkronisasi data ke Google Sheet:", error));
+    }
+
+    // FUNGSI MEMUAT DATA AWAL (GET) DARI GOOGLE SPREADSHEET 
+    function muatDataDariGoogleSheet() {
+        fetch(URL_WEB_APP)
+        .then(response => response.json())
+        .then(data => {
+            if (data) {
+                if (data.listKaryawan) listKaryawan = data.listKaryawan;
+                if (data.logPengajuan) logPengajuan = data.logPengajuan;
+                if (data.configShift) configShift = data.configShift;
+                
+                listKaryawan.forEach(k => {
+                    if (!k.riwayatPola) k.riwayatPola = {};
+                });
+                
+                if (listKaryawan.length > 0) {
+                    if (!karyawanAktifId || !listKaryawan.find(k => k.id === karyawanAktifId)) {
+                        karyawanAktifId = listKaryawan[0].id;
+                    }
+                } else {
+                    karyawanAktifId = null;
+                }
+                
+                muatFormGlobal(); 
+                renderLegend(); 
+                updateKomponenKaryawan(); 
+                renderCalendar(); 
+                renderLog(); 
+                updateUIMode();
+                console.log("Database Google Spreadsheet berhasil dimuat.");
+            }
+        })
+        .catch(error => {
+            console.error("Gagal terhubung ke Google Sheet, menggunakan cadangan lokal:", error);
+            // Fallback rendering lokal jika koneksi terputus
+            muatFormGlobal(); 
+            renderLegend(); 
+            updateKomponenKaryawan(); 
+            renderCalendar(); 
+            renderLog(); 
+            updateUIMode();
+        });
     }
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
@@ -959,7 +965,6 @@
                 if (!targetUser) { alert("Pilih karyawan target terlebih dahulu!"); return; }
                 
                 if (tipeTukar === 'karyawan_1hari') {
-                    // Tukar Shift 1 Hari: Ambil base shift sebelum modifikasi pada tanggal tsb
                     let myBase = hitungShiftUserObj(new Date(tanggal), user);
                     let targetBase = hitungShiftUserObj(new Date(tanggal), targetUser);
                     
@@ -969,7 +974,6 @@
                     statusFinal = targetBase; 
                     infoTeks = `Tukar shift 1 hari dgn ${targetUser.nama} (${keterangan})`;
                 } else {
-                    // Tukar SIKLUS Permanen
                     let myOffset = getActiveOffset(new Date(tanggal), user);
                     let targetOffset = getActiveOffset(new Date(tanggal), targetUser);
                     
@@ -986,7 +990,6 @@
             else if (tipeTukar === 'pola_permanen') {
                 let polaTargetPadaTanggalItu = document.getElementById('pola-baru-tukar').value;
                 
-                // Menghitung offset base berdasarkan rentang hari agar tepat jatuh pada jadwal yang diminta saat tanggal tersebut
                 let dateObj = new Date(tanggal);
                 let selisihWaktu = dateObj.getTime() - anchorDate.getTime();
                 let selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
@@ -995,7 +998,7 @@
                 
                 if(!user.riwayatPola) user.riwayatPola = {};
                 user.riwayatPola[tanggal] = newOffset;
-                polaBaru = polaTargetPadaTanggalItu; // Menyimpan histori index awal pilihan
+                polaBaru = polaTargetPadaTanggalItu;
                 
                 let namaPola = polaBaru==0?'Pagi Pertama':polaBaru==2?'Sore Pertama':polaBaru==4?'Malam Pertama':'Libur Pertama';
                 statusFinal = `Siklus ${namaPola}`;
@@ -1019,7 +1022,6 @@
             user.modifikasi[tanggal] = statusFinal;
         }
 
-        // Menyimpan log
         logPengajuan.unshift({
             id: editLogId || ('log_' + Date.now()), 
             karyawanId: targetUserId, namaKaryawan: user.nama,
@@ -1029,7 +1031,7 @@
         });
 
         saveData(); renderCalendar(); renderLog();
-        cancelEditKegiatan(); // reset form UI
+        cancelEditKegiatan();
         alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
 
@@ -1054,7 +1056,6 @@
             } else if (tipe === 'karyawan_1hari' || tipe === 'karyawan_permanen') {
                 document.getElementById('tukar-dengan-karyawan').value = item.gantiKaryawanId;
             } else if (tipe === 'pola_permanen') {
-                // Konversi fallback jika belum tersimpan properti polaBaru
                 let val = item.polaBaru || 0;
                 if (!item.polaBaru && item.statusShift) {
                     if (item.statusShift.includes('Sore')) val = 2;
@@ -1156,21 +1157,12 @@
         });
     }
 
-    // Initialize list dengan properti baru jika loading awal
     listKaryawan.forEach(k => {
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    // Pemuatan Awal Antarmuka
-    muatFormGlobal(); 
-    renderLegend(); 
-    updateKomponenKaryawan(); 
-    renderCalendar(); 
-    renderLog(); 
-    updateUIMode();
-
-    // Jalankan sinkronisasi awan dari Google Spreadsheet via Apps Script otomatis saat load
-    sinkronisasiAmbilDataAwal();
+    // Jalankan pemuatan otomatis dari Google Spreadsheet saat web dibuka
+    muatDataDariGoogleSheet();
 </script>
 
 </body>
