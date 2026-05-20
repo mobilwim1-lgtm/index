@@ -816,7 +816,7 @@
 
 // Kode contoh integrasi saat menyimpan input transaksi baru ke Google Sheet:
 function kirimKeGoogleSheet(dataBaru) {
-    fetch(URL_WEB_APP, {
+    fetch(https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec, {
         method: "POST",
         mode: "no-cors", // Membantu menghindari error CORS lintas domain sederhana
         headers: {
@@ -832,7 +832,7 @@ function kirimKeGoogleSheet(dataBaru) {
 
 // Sinkronisasi data dari Google Sheet saat website pertama kali dibuka (menggantikan localStorage muat awal):
 function sinkronisasiAmbilDataAwal() {
-    fetch(URL_WEB_APP)
+    fetch(https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec)
     .then(response => response.json())
     .then(dataDariSheet => {
         if(dataDariSheet && dataDariSheet.length > 0) {
