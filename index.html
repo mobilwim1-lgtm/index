@@ -533,10 +533,44 @@
         "2026-08-25": "Maulid Nabi Muhammad SAW", "2026-12-25": "Hari Raya Natal"
     };
 
-    let listKaryawan = JSON.parse(localStorage.getItem('roster_2026_karyawan_v6')) || defaultKaryawan;
-    let logPengajuan = JSON.parse(localStorage.getItem('roster_2026_log_v6')) || [];
-    let configShift = JSON.parse(localStorage.getItem('roster_2026_config_v6')) || defaultShiftConfig;
-    let karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
+    let isAdmin = false;
+    const PASSWORD_ADMIN = "admin123";
+
+    // Tempel URL Web App Google Script Anda di sini!
+    const API_URL = "https://script.google.com/macros/s/AKfycbyEYQg-uVDstOSi5vvZNLyalIC87E-BsgUqng3FYP_K9zD5i3Ya373c3a3b5xLhJfMo/exec"; 
+
+    // Variabel dikosongkan terlebih dahulu sebelum ditarik dari cloud
+    let listKaryawan = [];
+    let logPengajuan = [];
+    let configShift = defaultShiftConfig;
+    let karyawanAktifId = null;
+
+    // --- FUNGSI BARU: AMBIL DATA DARI DATABASE GOOGLE SHEETS ---
+    async function muatDataDariCloud() {
+        try {
+            const respon = await fetch(API_URL);
+            const data = await respon.json();
+            
+            listKaryawan = data.karyawan && data.karyawan.length > 0 ? data.karyawan : defaultKaryawan;
+            logPengajuan = data.log || [];
+            configShift = data.config && data.config.Pagi ? data.config : defaultShiftConfig;
+            karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
+            
+            // Render seluruh komponen UI setelah data sukses diambil
+            muatFormGlobal(); 
+            renderLegend(); 
+            updateKomponenKaryawan(); 
+            renderCalendar(); 
+            renderLog();
+            updateUIMode();
+        } catch (error) {
+            console.error("Gagal memuat database cloud, menggunakan cadangan lokal:", error);
+            // Fallback cadangan jika koneksi gagal
+            listKaryawan = defaultKaryawan; logPengajuan = []; configShift = defaultShiftConfig;
+            karyawanAktifId = listKaryawan[0].id;
+            muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
+        }
+    }
 
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -811,10 +845,22 @@
         }
     }
 
-    function saveData() {
-        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
-        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
-        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
+    async function saveData() {
+        try {
+            // Menggunakan text/plain mencegah CORS preflight OPTIONS request yang sering memblokir Google Apps Script
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    karyawan: listKaryawan,
+                    log: logPengajuan,
+                    config: configShift
+                })
+            });
+            console.log("Sinkronisasi database cloud berhasil dilakukan.");
+        } catch (err) {
+            console.error("Gagal mengirim pembaruan data ke cloud:", err);
+        }
     }
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
@@ -1106,7 +1152,8 @@
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
+    // Memulai aplikasi dengan mengambil data cloud secara dinamis
+    muatDataDariCloud();
 </script>
 
 </body>
