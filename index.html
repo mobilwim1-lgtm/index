@@ -299,7 +299,6 @@
                         </div>
                     </div>
 
-                    <!-- OPSIONAL KHUSUS TUKAR -->
                     <div id="tukar-opsi" style="display: none; background: #eff6ff; padding: 10px; border-radius: 6px; border: 1px solid #bfdbfe; margin-top: 5px;">
                         <label for="tipe-tukar">Mode Tukar Jadwal:</label>
                         <select id="tipe-tukar" onchange="toggleTipeTukar()">
@@ -309,7 +308,6 @@
                             <option value="pola_permanen">4. Mulai Siklus Baru (Ubah Pola Permanen)</option>
                         </select>
 
-                        <!-- Panel Manual 1 Hari -->
                         <div id="tukar-manual-1hari" class="tukar-panel" style="margin-top: 10px;">
                             <label for="shift-baru">Ubah Jadwal Menjadi:</label>
                             <select id="shift-baru">
@@ -320,7 +318,6 @@
                             </select>
                         </div>
 
-                        <!-- Panel Tukar Karyawan -->
                         <div id="tukar-karyawan" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="tukar-dengan-karyawan">Pilih Karyawan Target:</label>
                             <select id="tukar-dengan-karyawan"></select>
@@ -329,7 +326,6 @@
                             </p>
                         </div>
 
-                        <!-- Panel Ganti Pola -->
                         <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
                             <select id="pola-baru-tukar">
@@ -342,7 +338,6 @@
                         </div>
                     </div>
 
-                    <!-- OPSIONAL KHUSUS LEMBUR -->
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
                         <p style="font-size: 11px; margin-top:0; margin-bottom: 8px; color: #92400e; font-weight: bold;">*Tentukan Total Jam Kerja Hari Ini (Shift + Lembur)</p>
                         <div class="flex-row" style="margin-bottom: 8px;">
@@ -452,6 +447,9 @@
     let isAdmin = false;
     const PASSWORD_ADMIN = "admin123";
 
+    // SILAKAN TEMPEL URL WEB APP GOOGLE SCRIPT ANDA DI BAWAH INI!
+    const API_URL = "PASTIKAN_URL_WEB_APP_GOOGLE_SCRIPT_DI_SINI";
+
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
         const btnAdmin = document.getElementById('btn-admin-auth');
@@ -533,19 +531,14 @@
         "2026-08-25": "Maulid Nabi Muhammad SAW", "2026-12-25": "Hari Raya Natal"
     };
 
-    let isAdmin = false;
-    const PASSWORD_ADMIN = "admin123";
-
-    // Tempel URL Web App Google Script Anda di sini!
-    const API_URL = "https://script.google.com/macros/s/AKfycbyEYQg-uVDstOSi5vvZNLyalIC87E-BsgUqng3FYP_K9zD5i3Ya373c3a3b5xLhJfMo/exec"; 
-
-    // Variabel dikosongkan terlebih dahulu sebelum ditarik dari cloud
     let listKaryawan = [];
     let logPengajuan = [];
     let configShift = defaultShiftConfig;
     let karyawanAktifId = null;
 
-    // --- FUNGSI BARU: AMBIL DATA DARI DATABASE GOOGLE SHEETS ---
+    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+
     async function muatDataDariCloud() {
         try {
             const respon = await fetch(API_URL);
@@ -554,9 +547,15 @@
             listKaryawan = data.karyawan && data.karyawan.length > 0 ? data.karyawan : defaultKaryawan;
             logPengajuan = data.log || [];
             configShift = data.config && data.config.Pagi ? data.config : defaultShiftConfig;
+            
+            listKaryawan.forEach(k => {
+                if (!k.riwayatPola) k.riwayatPola = {};
+                if (!k.modifikasi) k.modifikasi = {};
+                if (!k.infoLembur) k.infoLembur = {};
+            });
+
             karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
             
-            // Render seluruh komponen UI setelah data sukses diambil
             muatFormGlobal(); 
             renderLegend(); 
             updateKomponenKaryawan(); 
@@ -565,21 +564,40 @@
             updateUIMode();
         } catch (error) {
             console.error("Gagal memuat database cloud, menggunakan cadangan lokal:", error);
-            // Fallback cadangan jika koneksi gagal
-            listKaryawan = defaultKaryawan; logPengajuan = []; configShift = defaultShiftConfig;
-            karyawanAktifId = listKaryawan[0].id;
+            listKaryawan = defaultKaryawan; 
+            logPengajuan = []; 
+            configShift = defaultShiftConfig;
+            karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
             muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
         }
     }
 
-    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    async function saveData() {
+        try {
+            const btnSubmitKegiatan = document.getElementById('btn-submit-kegiatan');
+            if(btnSubmitKegiatan) btnSubmitKegiatan.disabled = true;
 
-    // MESIN PENGHITUNG SIKLUS (TERMASUK DINAMIS PERUBAHAN SIKLUS)
+            await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({
+                    karyawan: listKaryawan,
+                    log: logPengajuan,
+                    config: configShift
+                })
+            });
+            console.log("Sinkronisasi database cloud berhasil dilakukan.");
+        } catch (err) {
+            console.error("Gagal mengirim pembaruan data ke cloud:", err);
+            alert("Terjadi kendala jaringan! Data gagal disinkronkan ke Cloud.");
+        } finally {
+            const btnSubmitKegiatan = document.getElementById('btn-submit-kegiatan');
+            if(btnSubmitKegiatan) btnSubmitKegiatan.disabled = false;
+        }
+    }
+
     function hitungShiftUserObj(tanggal, user) {
         let polaAktif = parseInt(user.urutanPola);
-
-        // Jika user punya riwayat pergantian pola, cari pola aktif pada tanggal ini
         if (user.riwayatPola) {
             const stringTanggal = `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, '0')}-${String(tanggal.getDate()).padStart(2, '0')}`;
             let riwayatDates = Object.keys(user.riwayatPola).sort();
@@ -589,7 +607,6 @@
                 }
             }
         }
-
         const selisihWaktu = tanggal.getTime() - anchorDate.getTime();
         const selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
         let index = (selisihHari + polaAktif) % 8;
@@ -597,7 +614,6 @@
         return polaShiftBase[index];
     }
 
-    // Mendapatkan offset/pola aktif pada suatu tanggal tanpa modifikasi harian
     function getActiveOffset(dateObj, user) {
         let polaAktif = parseInt(user.urutanPola);
         if (user.riwayatPola) {
@@ -636,7 +652,7 @@
         document.getElementById('g-libur-jam').value = configShift.Libur.jam;
     }
 
-    function simpanPengaturanGlobal() {
+    async function simpanPengaturanGlobal() {
         if (!isAdmin) return;
         configShift.Pagi.nama = document.getElementById('g-pagi-nama').value;
         configShift.Pagi.jam = document.getElementById('g-pagi-jam').value;
@@ -646,7 +662,7 @@
         configShift.Malam.jam = document.getElementById('g-malam-jam').value;
         configShift.Libur.nama = document.getElementById('g-libur-nama').value;
         configShift.Libur.jam = document.getElementById('g-libur-jam').value;
-        saveData(); renderLegend(); renderCalendar();
+        await saveData(); renderLegend(); renderCalendar();
         alert("Konfigurasi global shift berhasil disimpan!");
     }
 
@@ -703,12 +719,10 @@
         
         listKaryawan.forEach(k => {
             if(k.id !== idKaryawanAktif) {
-                // Dropdown lembur
                 let optLembur = document.createElement('option');
                 optLembur.value = k.id; optLembur.innerText = `Gantikan: ${k.nama}`;
                 dropdownGanti.appendChild(optLembur);
 
-                // Dropdown tukar dengan karyawan lain
                 let optTukar = document.createElement('option');
                 optTukar.value = k.id; optTukar.innerText = `${k.nama}`;
                 dropdownTukar.appendChild(optTukar);
@@ -736,14 +750,14 @@
         document.getElementById('btn-batal-edit').style.display = "none";
     }
 
-    function hapusKaryawan(id) {
+    async function hapusKaryawan(id) {
         if (!isAdmin) return;
         const karyawan = listKaryawan.find(k => k.id === id);
         if (karyawan && confirm(`Hapus karyawan "${karyawan.nama}"? Semua data ikut terhapus.`)) {
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
             listKaryawan = listKaryawan.filter(k => k.id !== id);
             if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+            cancelEditKaryawan(); await saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
         }
     }
 
@@ -783,7 +797,6 @@
             
             const cell = document.createElement('div'); cell.className = 'day-cell';
 
-            // Menghitung jenis Shift dengan melihat modifikasi manual harian, jika tidak ada fallback ke riwayatPola / base pola
             let tipeShiftId = user.modifikasi[stringTanggal] || hitungShiftUserObj(tanggalTarget, user);
             
             const namaLibur = tanggalMerah2026[stringTanggal];
@@ -845,25 +858,7 @@
         }
     }
 
-    async function saveData() {
-        try {
-            // Menggunakan text/plain mencegah CORS preflight OPTIONS request yang sering memblokir Google Apps Script
-            await fetch(API_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({
-                    karyawan: listKaryawan,
-                    log: logPengajuan,
-                    config: configShift
-                })
-            });
-            console.log("Sinkronisasi database cloud berhasil dilakukan.");
-        } catch (err) {
-            console.error("Gagal mengirim pembaruan data ke cloud:", err);
-        }
-    }
-
-    document.getElementById('form-karyawan').addEventListener('submit', function(e) {
+    document.getElementById('form-karyawan').addEventListener('submit', async function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
         const urutanPola = document.getElementById('pola-start').value;
@@ -879,10 +874,10 @@
             karyawanAktifId = id;
             document.getElementById('form-karyawan').reset();
         }
-        saveData(); updateKomponenKaryawan(); renderCalendar();
+        await saveData(); updateKomponenKaryawan(); renderCalendar();
     });
 
-    document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
+    document.getElementById('form-kegiatan').addEventListener('submit', async function(e) {
         e.preventDefault();
         const targetUserId = document.getElementById('input-karyawan').value;
         const jenis = document.getElementById('jenis').value;
@@ -900,7 +895,6 @@
         let polaBaru = "";
         let jamStart = "", jamEnd = "";
 
-        // Hapus & Rollback data lama jika sedang dalam mode Edit
         if (editLogId) {
             if (!isAdmin) { alert("Maaf, mengedit log yang sudah masuk membutuhkan hak akses Admin."); return; }
             const dataLama = logPengajuan.find(item => item.id === editLogId);
@@ -919,7 +913,6 @@
 
                     if(userLama.infoLembur) delete userLama.infoLembur[dataLama.tanggal];
                     
-                    // Rollback target user (jika melibatkan karyawan lain)
                     if (dataLama.jenis === 'Tukar' && (dataLama.tipeTukar === 'karyawan_1hari' || dataLama.tipeTukar === 'karyawan_permanen') && dataLama.gantiKaryawanId) {
                         const targetLama = listKaryawan.find(k => k.id === dataLama.gantiKaryawanId);
                         if (targetLama) {
@@ -935,7 +928,6 @@
             }
         }
 
-        // --- PEMROSESAN LOGIKA BERDASARKAN JENIS ---
         if (jenis === 'Tukar') {
             tipeTukar = document.getElementById('tipe-tukar').value;
             
@@ -950,7 +942,6 @@
                 if (!targetUser) { alert("Pilih karyawan target terlebih dahulu!"); return; }
                 
                 if (tipeTukar === 'karyawan_1hari') {
-                    // Tukar Shift 1 Hari: Ambil base shift sebelum modifikasi pada tanggal tsb
                     let myBase = hitungShiftUserObj(new Date(tanggal), user);
                     let targetBase = hitungShiftUserObj(new Date(tanggal), targetUser);
                     
@@ -960,7 +951,6 @@
                     statusFinal = targetBase; 
                     infoTeks = `Tukar shift 1 hari dgn ${targetUser.nama} (${keterangan})`;
                 } else {
-                    // Tukar SIKLUS Permanen
                     let myOffset = getActiveOffset(new Date(tanggal), user);
                     let targetOffset = getActiveOffset(new Date(tanggal), targetUser);
                     
@@ -977,7 +967,6 @@
             else if (tipeTukar === 'pola_permanen') {
                 let polaTargetPadaTanggalItu = document.getElementById('pola-baru-tukar').value;
                 
-                // Menghitung offset base berdasarkan rentang hari agar tepat jatuh pada jadwal yang diminta saat tanggal tersebut
                 let dateObj = new Date(tanggal);
                 let selisihWaktu = dateObj.getTime() - anchorDate.getTime();
                 let selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
@@ -986,7 +975,7 @@
                 
                 if(!user.riwayatPola) user.riwayatPola = {};
                 user.riwayatPola[tanggal] = newOffset;
-                polaBaru = polaTargetPadaTanggalItu; // Menyimpan histori index awal pilihan
+                polaBaru = polaTargetPadaTanggalItu; 
                 
                 let namaPola = polaBaru==0?'Pagi Pertama':polaBaru==2?'Sore Pertama':polaBaru==4?'Malam Pertama':'Libur Pertama';
                 statusFinal = `Siklus ${namaPola}`;
@@ -1010,7 +999,6 @@
             user.modifikasi[tanggal] = statusFinal;
         }
 
-        // Menyimpan log
         logPengajuan.unshift({
             id: editLogId || ('log_' + Date.now()), 
             karyawanId: targetUserId, namaKaryawan: user.nama,
@@ -1019,8 +1007,8 @@
             tipeTukar, polaBaru
         });
 
-        saveData(); renderCalendar(); renderLog();
-        cancelEditKegiatan(); // reset form UI
+        await saveData(); renderCalendar(); renderLog();
+        cancelEditKegiatan(); 
         alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
 
@@ -1045,7 +1033,6 @@
             } else if (tipe === 'karyawan_1hari' || tipe === 'karyawan_permanen') {
                 document.getElementById('tukar-dengan-karyawan').value = item.gantiKaryawanId;
             } else if (tipe === 'pola_permanen') {
-                // Konversi fallback jika belum tersimpan properti polaBaru
                 let val = item.polaBaru || 0;
                 if (!item.polaBaru && item.statusShift) {
                     if (item.statusShift.includes('Sore')) val = 2;
@@ -1079,7 +1066,7 @@
         document.getElementById('btn-batal-kegiatan').style.display = "none";
     }
 
-    function hapusKegiatan(id) {
+    async function hapusKegiatan(id) {
         if (!isAdmin) return;
         const item = logPengajuan.find(log => log.id === id);
         if (item && confirm(`Batalkan agenda ${item.jenis}?`)) {
@@ -1112,7 +1099,7 @@
                 if(user.infoLembur) delete user.infoLembur[item.tanggal]; 
             }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
-            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
+            cancelEditKegiatan(); await saveData(); renderCalendar(); renderLog();
         }
     }
 
@@ -1147,12 +1134,7 @@
         });
     }
 
-    // Initialize list with new properties if loading from old localstorage
-    listKaryawan.forEach(k => {
-        if (!k.riwayatPola) k.riwayatPola = {};
-    });
-
-    // Memulai aplikasi dengan mengambil data cloud secara dinamis
+    // Memulai aplikasi dengan mengambil data dari Google Sheets
     muatDataDariCloud();
 </script>
 
