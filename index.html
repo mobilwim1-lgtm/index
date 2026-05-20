@@ -428,9 +428,6 @@
 </div>
 
 <script>
-    // URL Web App Google Apps Script
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
-
     // --- SKRIP INTEGRITAS SECURITY HAK CIPTA ---
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', { value: 'Rizky SIL 1806', writable: false, configurable: false });
@@ -784,6 +781,72 @@
         if(newMonth >= 4 && newMonth <= 11) { currentDate.setMonth(newMonth); renderCalendar(); }
     }
 
+    // --- INTEGRASI REAL-TIME GOOGLE SPREADSHEETS & APPS SCRIPT WEB APP ---
+    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
+
+    function saveData() {
+        // 1. Simpan cadangan ke LocalStorage internal browser
+        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
+        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
+        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
+
+        // 2. Kirim bungkusan data lengkap ke Google Apps Script (U.P Google Sheet)
+        const paketData = {
+            listKaryawan: listKaryawan,
+            logPengajuan: logPengajuan,
+            configShift: configShift
+        };
+        kirimKeGoogleSheet(paketData);
+    }
+
+    function kirimKeGoogleSheet(dataBaru) {
+        fetch(URL_WEB_APP, {
+            method: "POST",
+            mode: "no-cors", 
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dataBaru)
+        })
+        .then(() => {
+            console.log("Data berhasil disinkronkan ke Google Sheet secara Real-Time!");
+        })
+        .catch(error => console.error("Gagal sinkronisasi ke Google Sheet:", error));
+    }
+
+    function sinkronisasiAmbilDataAwal() {
+        fetch(URL_WEB_APP)
+        .then(response => response.json())
+        .then(dataDariSheet => {
+            if (dataDariSheet) {
+                // Parsing data jika Google Sheets mengembalikan struktur data kustom terpusat
+                if (dataDariSheet.listKaryawan) listKaryawan = dataDariSheet.listKaryawan;
+                if (dataDariSheet.logPengajuan) logPengajuan = dataDariSheet.logPengajuan;
+                if (dataDariSheet.configShift) configShift = dataDariSheet.configShift;
+                
+                // Fallback otomatis jika Apps Script hanya me-return array log pengajuan secara sepihak
+                if (Array.isArray(dataDariSheet) && dataDariSheet.length > 0) {
+                    logPengajuan = dataDariSheet;
+                }
+                
+                // Segarkan ID Karyawan yang sedang dipantau di layar kalender
+                if (listKaryawan.length > 0) {
+                    karyawanAktifId = listKaryawan[0].id;
+                }
+                
+                // Re-render UI Web App secara global setelah database dari Cloud berhasil ditarik
+                muatFormGlobal(); 
+                renderLegend(); 
+                updateKomponenKaryawan(); 
+                renderCalendar(); 
+                renderLog();
+                console.log("Database Google Sheet berhasil dimuat & disinkronkan!");
+            }
+        })
+        .catch(error => console.error("Gagal memuat database online dari Google Sheet:", error));
+    }
+    // -------------------------------------------------------------
+
     function toggleFormPilihan() {
         const jenis = document.getElementById('jenis').value;
         document.getElementById('tukar-opsi').style.display = (jenis === 'Tukar') ? 'block' : 'none';
@@ -807,65 +870,6 @@
         } else if (tipe === 'pola_permanen') {
             document.getElementById('tukar-pola-permanen').style.display = 'block';
         }
-    }
-
-    // MENYIMPAN DATA (LOCAL STORAGE + GOOGLE SHEET REAL-TIME)
-    function saveData() {
-        localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
-        localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
-        localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
-
-        // Format pengiriman data terpadu ke cloud agar tersinkronisasi sempurna
-        const dataPaket = {
-            listKaryawan: listKaryawan,
-            logPengajuan: logPengajuan,
-            configShift: configShift
-        };
-
-        fetch(SCRIPT_URL, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "text/plain" // Menghindari kendala pemblokiran CORS OPTIONS oleh Browser
-            },
-            body: JSON.stringify(dataPaket)
-        })
-        .then(res => res.json())
-        .then(response => {
-            console.log("Database Google Sheet Berhasil Sinkron Terkini:", response);
-        })
-        .catch(error => console.error("Gagal melakukan otomatisasi sinkronisasi cloud:", error));
-    }
-
-    // MEMUAT DATABASE DARI CLOUD SAAT HALAMAN DIBUKA
-    function sinkronisasiAmbilDataAwal() {
-        fetch(SCRIPT_URL)
-        .then(response => response.json())
-        .then(dataDariSheet => {
-            if(dataDariSheet) {
-                // Memetakan data bundle yang dikembalikan cloud ke sistem web aplikasi Anda
-                if (dataDariSheet.listKaryawan) listKaryawan = dataDariSheet.listKaryawan;
-                if (dataDariSheet.logPengajuan) logPengajuan = dataDariSheet.logPengajuan;
-                if (dataDariSheet.configShift) configShift = dataDariSheet.configShift;
-                
-                // Fallback pencocokan jika data dari sheet datang berupa array baris log saja
-                if (Array.isArray(dataDariSheet) && dataDariSheet.length > 0) {
-                    logPengajuan = dataDariSheet;
-                }
-
-                // Segarkan UI Roster Web berdasarkan isi ter-update Google Sheet
-                muatFormGlobal(); 
-                renderLegend(); 
-                updateKomponenKaryawan(); 
-                renderCalendar(); 
-                renderLog(); 
-                updateUIMode();
-                console.log("Data Cloud Berhasil Sinkron Masuk!");
-            }
-        })
-        .catch(error => {
-            console.error("Gagal menarik database Cloud Google Sheet, mengandalkan sistem lokal offline:", error);
-        });
     }
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
@@ -1152,15 +1156,20 @@
         });
     }
 
-    // Initialize list dengan properti baru jika memuat dari localstorage lama
+    // Initialize list dengan properti baru jika loading awal
     listKaryawan.forEach(k => {
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    // Inisialisasi Tampilan Awal Situs
-    muatFormGlobal(); renderLegend(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateUIMode();
-    
-    // Jalankan penarikan data dari Google Sheets secara real-time saat halaman web dibuka
+    // Pemuatan Awal Antarmuka
+    muatFormGlobal(); 
+    renderLegend(); 
+    updateKomponenKaryawan(); 
+    renderCalendar(); 
+    renderLog(); 
+    updateUIMode();
+
+    // Jalankan sinkronisasi awan dari Google Spreadsheet via Apps Script otomatis saat load
     sinkronisasiAmbilDataAwal();
 </script>
 
