@@ -50,7 +50,6 @@
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
 
-        /* Widget Team Standby */
         .standby-card {
             background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
             color: white;
@@ -236,7 +235,7 @@
 
 <div class="container">
     <div class="app-signature" id="top-author-watermark">
-        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.2 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
+        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.1 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
     </div>
 
     <!-- WIDGET TEAM STANDBY -->
@@ -285,6 +284,7 @@
         </div>
 
         <div>
+            <!-- KELOLA KARYAWAN DENGAN OPTION SHIFT 1, 2, 3 DAN SINKRONISASI GOOGLE -->
             <div class="card" id="card-kelola-karyawan">
                 <div class="readonly-overlay" id="overlay-karyawan"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
                 <h2 id="form-karyawan-title">Kelola Karyawan</h2>
@@ -294,20 +294,16 @@
                     <label for="nama-baru" id="label-nama-karyawan">Nama Karyawan:</label>
                     <input type="text" id="nama-baru" placeholder="Contoh: Perdana" required>
                     
-                    <label for="pola-start" id="label-pola-start">Shift / Siklus Hari Ini (Waktu Realtime Google):</label>
+                    <label for="pola-start">Posisi Siklus Pada 17 Mei 2026:</label>
                     <select id="pola-start">
-                        <!-- SHIFT 1 (PAGI) -->
-                        <option value="0">Shift 1 Pagi - Hari ke-1</option>
-                        <option value="1">Shift 1 Pagi - Hari ke-2</option>
-                        <!-- SHIFT 2 (SORE) -->
-                        <option value="2">Shift 2 Sore - Hari ke-1</option>
-                        <option value="3">Shift 2 Sore - Hari ke-2</option>
-                        <!-- SHIFT 3 (MALAM) -->
-                        <option value="4">Shift 3 Malam - Hari ke-1</option>
-                        <option value="5">Shift 3 Malam - Hari ke-2</option>
-                        <!-- OFF (LIBUR) -->
-                        <option value="6">Off (Libur) - Hari ke-1</option>
-                        <option value="7">Off (Libur) - Hari ke-2</option>
+                        <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
+                        <option value="1">Hari ke-2: Shift 1 Pagi Kedua</option>
+                        <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
+                        <option value="3">Hari ke-4: Shift 2 Sore Kedua</option>
+                        <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
+                        <option value="5">Hari ke-6: Shift 3 Malam Kedua</option>
+                        <option value="6">Hari ke-7: Off / Libur Pertama</option>
+                        <option value="7">Hari ke-8: Off / Libur Kedua</option>
                     </select>
                     
                     <button type="submit" id="btn-submit-karyawan" class="btn-submit" style="background: var(--primary);">+ Tambah Karyawan</button>
@@ -320,7 +316,7 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Siklus Saat Ini</th>
+                                <th>Posisi Siklus</th>
                                 <th style="text-align: center; width: 100px;" class="admin-action-header">Aksi</th>
                             </tr>
                         </thead>
@@ -383,14 +379,14 @@
                         <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
                             <select id="pola-baru-tukar">
-                                <option value="0">Shift 1 Pagi - Hari ke-1</option>
-                                <option value="1">Shift 1 Pagi - Hari ke-2</option>
-                                <option value="2">Shift 2 Sore - Hari ke-1</option>
-                                <option value="3">Shift 2 Sore - Hari ke-2</option>
-                                <option value="4">Shift 3 Malam - Hari ke-1</option>
-                                <option value="5">Shift 3 Malam - Hari ke-2</option>
-                                <option value="6">Off (Libur) - Hari ke-1</option>
-                                <option value="7">Off (Libur) - Hari ke-2</option>
+                                <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
+                                <option value="1">Hari ke-2: Shift 1 Pagi Kedua</option>
+                                <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
+                                <option value="3">Hari ke-4: Shift 2 Sore Kedua</option>
+                                <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
+                                <option value="5">Hari ke-6: Shift 3 Malam Kedua</option>
+                                <option value="6">Hari ke-7: Off / Libur Pertama</option>
+                                <option value="7">Hari ke-8: Off / Libur Kedua</option>
                             </select>
                             <p style="font-size: 11px; color: #b91c1c; margin-top: 4px; font-weight:bold;">*Kalender Anda akan berganti mengikuti urutan siklus posisi ini seterusnya.</p>
                         </div>
@@ -562,16 +558,9 @@
     if (sessionStorage.getItem('roster_admin_logged') === 'true') { isAdmin = true; }
 
     let currentDate = new Date(2026, 4, 1);
-    let todayInternetDate = new Date(); // Simpan Waktu Realtime Internet Google
+    let todayInternetDate = new Date(); // Realtime Google Internet Time
     const anchorDate = new Date(2026, 4, 17);
     const polaShiftBase = ["Pagi", "Pagi", "Sore", "Sore", "Malam", "Malam", "Libur", "Libur"];
-
-    const labelSiklusFull = [
-        "Shift 1 Pagi (H1)", "Shift 1 Pagi (H2)",
-        "Shift 2 Sore (H1)", "Shift 2 Sore (H2)",
-        "Shift 3 Malam (H1)", "Shift 3 Malam (H2)",
-        "Off Libur (H1)", "Off Libur (H2)"
-    ];
 
     const defaultShiftConfig = {
         Pagi: { nama: "Shift 1 Pagi", jam: "07:00 - 15:00 WIB" },
@@ -580,14 +569,11 @@
         Libur: { nama: "Off (Libur)", jam: "Bebas Tugas" }
     };
 
-    // DAFTAR TIM COMBINED: Mayora Ciawi A & Mayora Ciawi B
     const defaultKaryawan = [
-        // Tim Mayora Ciawi A
         { id: "k1", nama: "Fred (Mayora A)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
         { id: "k2", nama: "Anam (Mayora A)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
         { id: "k3", nama: "Randy (Mayora A)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
         { id: "k4", nama: "Danu (Mayora A)", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        // Tim Mayora Ciawi B
         { id: "k5", nama: "Adlin (Mayora B)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
         { id: "k6", nama: "Rizky (Mayora B)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
         { id: "k7", nama: "Rulli (Mayora B)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
@@ -609,55 +595,40 @@
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-    // MEMANGGIL TANGGAL INTERNET UP-TO-DATE GOOGLE (VIA WORLDTIMEAPI)
+    // INTERNET TIME GOOGLE SINKRONISASI
     function sinkronkanWaktuInternetGoogle() {
         fetch('https://worldtimeapi.org/api/ip')
             .then(res => res.json())
             .then(data => {
                 if(data && data.datetime) {
                     todayInternetDate = new Date(data.datetime);
-                    // Sesuaikan tampilan Kalender ke Bulan & Tahun Berjalan dari Internet
                     currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
-                    updateLabelRealtimeGoogle();
                     updateStandbyWidget();
                     renderCalendar();
                 }
             })
             .catch(err => {
-                console.log("Menggunakan fallback jam perangkat lokal:", err);
                 todayInternetDate = new Date();
                 currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
-                updateLabelRealtimeGoogle();
                 updateStandbyWidget();
                 renderCalendar();
             });
     }
 
-    function updateLabelRealtimeGoogle() {
-        const strTgl = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
-        const lblPola = document.getElementById('label-pola-start');
-        if (lblPola) {
-            lblPola.innerHTML = `Posisi Shift / Siklus Hari Ini (<b>${strTgl}</b> Realtime Google):`;
-        }
-    }
-
-    // UPDATE TAMPILAN TEAM STANDBY REALTIME (HANYA 1 NAMA SESUAI SHIFT HARI INI)
     function updateStandbyWidget() {
         const strToday = `${todayInternetDate.getFullYear()}-${String(todayInternetDate.getMonth() + 1).padStart(2, '0')}-${String(todayInternetDate.getDate()).padStart(2, '0')}`;
         const hour = todayInternetDate.getHours();
         
-        // Tentukan Shift Berjalan berdasarkan jam saat ini
         let targetShift = "Pagi";
         if (hour >= 15 && hour < 23) targetShift = "Sore";
         else if (hour >= 23 || hour < 7) targetShift = "Malam";
 
-        // Cari 1 Nama Standby
         let standbyUser = null;
         for (let user of listKaryawan) {
             let shiftToday = user.modifikasi[strToday] || hitungShiftUserObj(todayInternetDate, user);
             if (shiftToday === targetShift) {
                 standbyUser = user.nama;
-                break; // Ambil tepat 1 nama saja
+                break;
             }
         }
 
@@ -684,33 +655,6 @@
         let index = (selisihHari + polaAktif) % 8;
         if (index < 0) index += 8;
         return polaShiftBase[index];
-    }
-
-    function getIndexSiklusRealtime(tanggalTarget, user) {
-        let polaAktif = parseInt(user.urutanPola);
-        if (user.riwayatPola) {
-            const stringTanggal = `${tanggalTarget.getFullYear()}-${String(tanggalTarget.getMonth() + 1).padStart(2, '0')}-${String(tanggalTarget.getDate()).padStart(2, '0')}`;
-            let riwayatDates = Object.keys(user.riwayatPola).sort();
-            for (let rDate of riwayatDates) {
-                if (stringTanggal >= rDate) {
-                    polaAktif = parseInt(user.riwayatPola[rDate]);
-                }
-            }
-        }
-        const selisihWaktu = tanggalTarget.getTime() - anchorDate.getTime();
-        const selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
-        let index = (selisihHari + polaAktif) % 8;
-        if (index < 0) index += 8;
-        return index;
-    }
-
-    function hitungPolaAwalDariHariIni(posisiDipilihToday) {
-        const todayReset = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), todayInternetDate.getDate());
-        const anchorReset = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate());
-        const selisihHari = Math.floor((todayReset.getTime() - anchorReset.getTime()) / (1000 * 60 * 60 * 24));
-        let baseOffset = (parseInt(posisiDipilihToday) - selisihHari) % 8;
-        if (baseOffset < 0) baseOffset += 8;
-        return baseOffset;
     }
 
     function getActiveOffset(dateObj, user) {
@@ -765,6 +709,7 @@
         alert("Konfigurasi global shift berhasil disimpan!");
     }
 
+    // UPDATE TABEL KELOLA KARYAWAN SESUAI SHIFT 1, 2, 3
     function updateKomponenKaryawan() {
         const pilihKaryawan = document.getElementById('pilih-karyawan');
         const inputKaryawan = document.getElementById('input-karyawan');
@@ -779,6 +724,13 @@
             karyawanAktifId = null; return;
         }
 
+        const labelSiklus = {
+            0: "Shift 1 Pagi (1)", 1: "Shift 1 Pagi (2)",
+            2: "Shift 2 Sore (1)", 3: "Shift 2 Sore (2)",
+            4: "Shift 3 Malam (1)", 5: "Shift 3 Malam (2)",
+            6: "Libur (1)", 7: "Libur (2)"
+        };
+
         listKaryawan.forEach(k => {
             let opt1 = document.createElement('option'); opt1.value = k.id; opt1.innerText = k.nama;
             if(k.id === karyawanAktifId) opt1.selected = true;
@@ -787,13 +739,12 @@
             let opt2 = document.createElement('option'); opt2.value = k.id; opt2.innerText = k.nama;
             inputKaryawan.appendChild(opt2);
 
-            let idxRealtime = getIndexSiklusRealtime(todayInternetDate, k);
-            let teksSiklus = labelSiklusFull[idxRealtime];
+            let teksSiklus = labelSiklus[k.urutanPola] || "Shift 1 Pagi (1)";
             let tr = document.createElement('tr');
             
             let tombolAksi = isAdmin ? `
                 <td class="action-buttons">
-                    <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${idxRealtime}')">Edit</button>
+                    <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
                 </td>
             ` : '';
@@ -829,11 +780,11 @@
         });
     }
 
-    function pemicuEditKaryawan(id, nama, idxSiklusToday) {
+    function pemicuEditKaryawan(id, nama, urutanPola) {
         if (!isAdmin) return;
         document.getElementById('edit-id-karyawan').value = id;
         document.getElementById('nama-baru').value = nama;
-        document.getElementById('pola-start').value = idxSiklusToday;
+        document.getElementById('pola-start').value = urutanPola;
         document.getElementById('form-karyawan-title').innerText = "Edit Nama & Siklus Karyawan";
         document.getElementById('btn-submit-karyawan').innerText = "Simpan Perubahan";
         document.getElementById('btn-submit-karyawan').style.background = "var(--warning)";
@@ -843,7 +794,6 @@
     function cancelEditKaryawan() {
         document.getElementById('edit-id-karyawan').value = "";
         document.getElementById('nama-baru').value = "";
-        document.getElementById('pola-start').value = "0";
         document.getElementById('form-karyawan-title').innerText = "Kelola Karyawan";
         document.getElementById('btn-submit-karyawan').innerText = "+ Tambah Karyawan";
         document.getElementById('btn-submit-karyawan').style.background = "var(--primary)";
@@ -958,6 +908,7 @@
         }
     }
 
+    // REALTIME GOOGLE SINKRONISASI
     function saveData() {
         localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
         localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
@@ -972,9 +923,7 @@
         fetch(URL_WEB_APP, {
             method: "POST",
             mode: "no-cors",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         })
         .then(() => {
@@ -1026,26 +975,25 @@
         });
     }
 
+    // FORM TAMBAH/EDIT KARYAWAN REALTIME KE GOOGLE
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
-        const posisiSiklusHariIni = document.getElementById('pola-start').value;
+        const urutanPola = document.getElementById('pola-start').value;
         const editId = document.getElementById('edit-id-karyawan').value;
-
-        // Hitung Offset Awal Terhadap Waktu Realtime Internet Google
-        const urutanPolaKalkulasi = hitungPolaAwalDariHariIni(posisiSiklusHariIni);
 
         if (editId) {
             const k = listKaryawan.find(item => item.id === editId);
-            if(k) { k.nama = nama; k.urutanPola = urutanPolaKalkulasi; }
+            if(k) { k.nama = nama; k.urutanPola = urutanPola; }
             cancelEditKaryawan();
         } else {
             const id = 'k_' + Date.now();
-            listKaryawan.push({ id, nama, urutanPola: urutanPolaKalkulasi, modifikasi: {}, infoLembur: {}, riwayatPola: {} });
+            listKaryawan.push({ id, nama, urutanPola, modifikasi: {}, infoLembur: {}, riwayatPola: {} });
             karyawanAktifId = id;
             document.getElementById('form-karyawan').reset();
         }
         saveData(); updateKomponenKaryawan(); renderCalendar(); updateStandbyWidget();
+        sinkronkanWaktuInternetGoogle();
     });
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
@@ -1148,7 +1096,7 @@
                 user.riwayatPola[tanggal] = newOffset;
                 polaBaru = polaTargetPadaTanggalItu;
                 
-                let namaPola = labelSiklusFull[polaBaru];
+                let namaPola = polaBaru==0?'Pagi (1)':polaBaru==1?'Pagi (2)':polaBaru==2?'Sore (1)':polaBaru==3?'Sore (2)':polaBaru==4?'Malam (1)':polaBaru==5?'Malam (2)':polaBaru==6?'Libur (1)':'Libur (2)';
                 statusFinal = `Siklus ${namaPola}`;
                 infoTeks = `Mulai siklus baru dari ${namaPola} seterusnya (${keterangan})`;
             }
@@ -1309,7 +1257,7 @@
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    // Panggil Waktu Internet Google dan Data Google Spreadsheet saat pertama kali dibuka
+    // SINKRONISASI AWAL
     sinkronkanWaktuInternetGoogle();
     muatDataDariGoogleSheet();
 </script>
