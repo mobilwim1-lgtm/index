@@ -116,6 +116,7 @@
             font-size: 11px;
             color: #93c5fd;
             margin-top: 2px;
+            white-space: pre-line;
         }
         
         .btn-whatsapp {
@@ -583,7 +584,6 @@
 
     let isAdmin = false;
     const PASSWORD_ADMIN = "admin123";
-    const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
 
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
@@ -642,7 +642,7 @@
     if (sessionStorage.getItem('roster_admin_logged') === 'true') { isAdmin = true; }
 
     let currentDate = new Date(2026, 4, 1);
-    let todayInternetDate = new Date(); // Realtime Google Internet Time
+    let todayInternetDate = new Date();
     const anchorDate = new Date(2026, 4, 17);
     const polaShiftBase = ["Pagi", "Pagi", "Sore", "Sore", "Malam", "Malam", "Libur", "Libur"];
 
@@ -679,7 +679,6 @@
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-    // Data Standby Terkini untuk WhatsApp Share
     let standbyDataToday = {
         teamA: { nama: "-", shift: "-", jam: "-" },
         teamB: { nama: "-", shift: "-", jam: "-" }
@@ -696,7 +695,7 @@
                     renderCalendar();
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 todayInternetDate = new Date();
                 currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
                 updateStandbyWidget();
@@ -726,7 +725,6 @@
 
         let standbyA = null, standbyB = null;
 
-        // Cari Standby Team A & B (Hanya 1 nama yang bertugas shift saat ini)
         for (let user of listKaryawan) {
             let detail = getKaryawanShiftDetail(user, todayInternetDate);
             let isTeamA = user.team === "Mayora Ciawi A" || user.nama.includes("Mayora A");
@@ -738,7 +736,6 @@
             }
         }
 
-        // Jika tidak ada yang shift saat ini, ambil orang pertama yang bertugas di tim
         if (!standbyA) {
             let userA = listKaryawan.find(u => u.team === "Mayora Ciawi A" || u.nama.includes("Mayora A"));
             if(userA) standbyA = { user: userA, detail: getKaryawanShiftDetail(userA, todayInternetDate) };
@@ -750,7 +747,6 @@
 
         document.getElementById('online-date-display').innerText = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
 
-        // Update UI Team A
         if (standbyA) {
             document.getElementById('standby-name-team-a').innerText = standbyA.user.nama.replace(' (Mayora A)', '');
             document.getElementById('standby-shift-team-a').innerText = `${standbyA.detail.nama}\n(${standbyA.detail.jam})`;
@@ -761,7 +757,6 @@
             };
         }
 
-        // Update UI Team B
         if (standbyB) {
             document.getElementById('standby-name-team-b').innerText = standbyB.user.nama.replace(' (Mayora B)', '');
             document.getElementById('standby-shift-team-b').innerText = `${standbyB.detail.nama}\n(${standbyB.detail.jam})`;
@@ -1053,66 +1048,28 @@
         localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
         localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
         localStorage.setItem('roster_2026_config_v6', JSON.stringify(configShift));
-
-        const payload = {
-            listKaryawan: listKaryawan,
-            logPengajuan: logPengajuan,
-            configShift: configShift
-        };
-
-        fetch(URL_WEB_APP, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(() => {
-            console.log("Sinkronisasi dua arah berhasil dikirim ke Google Spreadsheet!");
-        })
-        .catch(error => console.error("Gagal sinkronisasi data ke Google Sheet:", error));
     }
 
-    function muatDataDariGoogleSheet() {
-        fetch(URL_WEB_APP)
-        .then(response => response.json())
-        .then(data => {
-            if (data) {
-                if (data.listKaryawan) listKaryawan = data.listKaryawan;
-                if (data.logPengajuan) logPengajuan = data.logPengajuan;
-                if (data.configShift) configShift = data.configShift;
-                
-                listKaryawan.forEach(k => {
-                    if (!k.riwayatPola) k.riwayatPola = {};
-                });
-                
-                if (listKaryawan.length > 0) {
-                    if (!karyawanAktifId || !listKaryawan.find(k => k.id === karyawanAktifId)) {
-                        karyawanAktifId = listKaryawan[0].id;
-                    }
-                } else {
-                    karyawanAktifId = null;
-                }
-                
-                muatFormGlobal(); 
-                renderLegend(); 
-                updateKomponenKaryawan(); 
-                renderCalendar(); 
-                renderLog(); 
-                updateUIMode();
-                updateStandbyWidget();
-                console.log("Database Google Spreadsheet berhasil dimuat.");
-            }
-        })
-        .catch(error => {
-            console.error("Gagal terhubung ke Google Sheet, menggunakan cadangan lokal:", error);
-            muatFormGlobal(); 
-            renderLegend(); 
-            updateKomponenKaryawan(); 
-            renderCalendar(); 
-            renderLog(); 
-            updateUIMode();
-            updateStandbyWidget();
+    function muatDataLokal() {
+        listKaryawan.forEach(k => {
+            if (!k.riwayatPola) k.riwayatPola = {};
         });
+        
+        if (listKaryawan.length > 0) {
+            if (!karyawanAktifId || !listKaryawan.find(k => k.id === karyawanAktifId)) {
+                karyawanAktifId = listKaryawan[0].id;
+            }
+        } else {
+            karyawanAktifId = null;
+        }
+        
+        muatFormGlobal(); 
+        renderLegend(); 
+        updateKomponenKaryawan(); 
+        renderCalendar(); 
+        renderLog(); 
+        updateUIMode();
+        updateStandbyWidget();
     }
 
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
@@ -1396,9 +1353,9 @@
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    // SINKRONISASI AWAL
+    // INISIALISASI LOKAL & WAKTU INTERNET
     sinkronkanWaktuInternetGoogle();
-    muatDataDariGoogleSheet();
+    muatDataLokal();
 </script>
 
 </body>
