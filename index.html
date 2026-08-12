@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Roster Shifting Karyawan (Mei - Des 2026)</title>
+    <title>Sistem Roster Shifting Karyawan (2026)</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -32,7 +32,6 @@
         }
         h1, h2, h3 { text-align: center; color: #111827; margin-top: 0; }
         
-        /* Watermark Styles */
         .app-signature {
             text-align: center;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -50,6 +49,43 @@
             color: #38bdf8;
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
+
+        /* Widget Team Standby */
+        .standby-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .standby-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+        .standby-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #fde047;
+            margin-top: 2px;
+        }
+        .time-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: right;
+            backdrop-filter: blur(4px);
+        }
+
         .footer-watermark {
             text-align: center;
             margin-top: 30px;
@@ -59,7 +95,6 @@
             border-top: 1px solid #cbd5e1;
         }
 
-        /* Admin Header Bar */
         .admin-bar {
             display: flex;
             justify-content: space-between;
@@ -97,7 +132,6 @@
             position: relative;
         }
 
-        /* Overlay Proteksi Khusus Blokir Form */
         .readonly-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -203,6 +237,18 @@
 <div class="container">
     <div class="app-signature" id="top-author-watermark">
         🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.1 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
+    </div>
+
+    <!-- WIDGET TEAM STANDBY -->
+    <div class="standby-card">
+        <div>
+            <div class="standby-title">⚡ Team Standby Saat Ini</div>
+            <div class="standby-name" id="standby-person-name">Memuat Data...</div>
+        </div>
+        <div class="time-badge">
+            <div id="online-date-display" style="font-weight: bold;">-- / -- / ----</div>
+            <div id="online-shift-display" style="opacity: 0.8; font-size: 11px;">Mengecek Shift Internet...</div>
+        </div>
     </div>
 
     <div class="admin-bar">
@@ -428,7 +474,7 @@
 </div>
 
 <script>
-    // --- SKRIP INTEGRITAS SECURITY HAK CIPTA ---
+    // SKRIP INTEGRITAS SECURITY HAK CIPTA
     const PembuatAplikasi = {};
     Object.defineProperty(PembuatAplikasi, 'nama', { value: 'Rizky SIL 1806', writable: false, configurable: false });
     Object.freeze(PembuatAplikasi);
@@ -442,12 +488,9 @@
             document.body.innerHTML = "<h1>Akses Ditutup: Dilarang Keras Memanipulasi Nama Pembuat Sistem Aplikasi!</h1>";
         }
     }, 3000);
-    // -------------------------------------------------------------
 
     let isAdmin = false;
     const PASSWORD_ADMIN = "admin123";
-
-    // GLOBAL APP SCRIPT CONFIGURATION
     const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyFrNiSntep2K1FSyaV8CriHjXKtDRCaRTNeWskYmH0En85DV9AIiQloCEBTl-lEetQbQ/exec";
 
     function updateUIMode() {
@@ -507,6 +550,7 @@
     if (sessionStorage.getItem('roster_admin_logged') === 'true') { isAdmin = true; }
 
     let currentDate = new Date(2026, 4, 1);
+    let todayInternetDate = new Date(); // Simpan Waktu Realtime Internet Google
     const anchorDate = new Date(2026, 4, 17);
     const polaShiftBase = ["Pagi", "Pagi", "Sore", "Sore", "Malam", "Malam", "Libur", "Libur"];
 
@@ -517,11 +561,18 @@
         Libur: { nama: "Off (Libur)", jam: "Bebas Tugas" }
     };
 
+    // DAFTAR TIM COMBINED: Mayora Ciawi A & Mayora Ciawi B
     const defaultKaryawan = [
-        { id: "k1", nama: "Adlin", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
-        { id: "k2", nama: "Rizky", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
-        { id: "k3", nama: "Rulli", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },  
-        { id: "k4", nama: "Agam", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }    
+        // Tim Mayora Ciawi A
+        { id: "k1", nama: "Fred (Mayora A)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k2", nama: "Anam (Mayora A)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k3", nama: "Randy (Mayora A)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k4", nama: "Danu (Mayora A)", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        // Tim Mayora Ciawi B
+        { id: "k5", nama: "Adlin (Mayora B)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k6", nama: "Rizky (Mayora B)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k7", nama: "Rulli (Mayora B)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k8", nama: "Agam (Mayora B)", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }
     ];
 
     const tanggalMerah2026 = {
@@ -539,11 +590,56 @@
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-    // MESIN PENGHITUNG SIKLUS (TERMASUK DINAMIS PERUBAHAN SIKLUS)
+    // MEMANGGIL TANGGAL INTERNET UP-TO-DATE GOOGLE (VIA WORLDTIMEAPI)
+    function sinkronkanWaktuInternetGoogle() {
+        fetch('https://worldtimeapi.org/api/ip')
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.datetime) {
+                    todayInternetDate = new Date(data.datetime);
+                    // Sesuaikan tampilan Kalender ke Bulan & Tahun Berjalan dari Internet
+                    currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
+                    updateStandbyWidget();
+                    renderCalendar();
+                }
+            })
+            .catch(err => {
+                console.log("Menggunakan fallback jam perangkat lokal:", err);
+                todayInternetDate = new Date();
+                currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
+                updateStandbyWidget();
+                renderCalendar();
+            });
+    }
+
+    // UPDATE TAMPILAN TEAM STANDBY REALTIME (HANYA 1 NAMA SESUAI SHIFT HARI INI)
+    function updateStandbyWidget() {
+        const strToday = `${todayInternetDate.getFullYear()}-${String(todayInternetDate.getMonth() + 1).padStart(2, '0')}-${String(todayInternetDate.getDate()).padStart(2, '0')}`;
+        const hour = todayInternetDate.getHours();
+        
+        // Tentukan Shift Berjalan berdasarkan jam saat ini
+        let targetShift = "Pagi";
+        if (hour >= 15 && hour < 23) targetShift = "Sore";
+        else if (hour >= 23 || hour < 7) targetShift = "Malam";
+
+        // Cari 1 Nama Standby
+        let standbyUser = null;
+        for (let user of listKaryawan) {
+            let shiftToday = user.modifikasi[strToday] || hitungShiftUserObj(todayInternetDate, user);
+            if (shiftToday === targetShift) {
+                standbyUser = user.nama;
+                break; // Ambil tepat 1 nama saja
+            }
+        }
+
+        document.getElementById('online-date-display').innerText = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
+        document.getElementById('online-shift-display').innerText = `Shift Standby: ${configShift[targetShift].nama}`;
+        document.getElementById('standby-person-name').innerText = standbyUser ? `👤 ${standbyUser}` : "Tidak Ada Standby";
+    }
+
     function hitungShiftUserObj(tanggal, user) {
         let polaAktif = parseInt(user.urutanPola);
 
-        // Jika user punya riwayat pergantian pola, cari pola aktif pada tanggal ini
         if (user.riwayatPola) {
             const stringTanggal = `${tanggal.getFullYear()}-${String(tanggal.getMonth() + 1).padStart(2, '0')}-${String(tanggal.getDate()).padStart(2, '0')}`;
             let riwayatDates = Object.keys(user.riwayatPola).sort();
@@ -561,7 +657,6 @@
         return polaShiftBase[index];
     }
 
-    // Mendapatkan offset/pola aktif pada suatu tanggal tanpa modifikasi harian
     function getActiveOffset(dateObj, user) {
         let polaAktif = parseInt(user.urutanPola);
         if (user.riwayatPola) {
@@ -610,7 +705,7 @@
         configShift.Malam.jam = document.getElementById('g-malam-jam').value;
         configShift.Libur.nama = document.getElementById('g-libur-nama').value;
         configShift.Libur.jam = document.getElementById('g-libur-jam').value;
-        saveData(); renderLegend(); renderCalendar();
+        saveData(); renderLegend(); renderCalendar(); updateStandbyWidget();
         alert("Konfigurasi global shift berhasil disimpan!");
     }
 
@@ -658,7 +753,6 @@
 
     function sinkronisasiOpsiDropdown() {
         const idKaryawanAktif = document.getElementById('input-karyawan').value;
-        
         const dropdownGanti = document.getElementById('lembur-gantikan-siapa');
         dropdownGanti.innerHTML = '<option value="">-- Lembur Mandiri (Bukan Pengganti) --</option>';
         
@@ -667,12 +761,10 @@
         
         listKaryawan.forEach(k => {
             if(k.id !== idKaryawanAktif) {
-                // Dropdown lembur
                 let optLembur = document.createElement('option');
                 optLembur.value = k.id; optLembur.innerText = `Gantikan: ${k.nama}`;
                 dropdownGanti.appendChild(optLembur);
 
-                // Dropdown tukar dengan karyawan lain
                 let optTukar = document.createElement('option');
                 optTukar.value = k.id; optTukar.innerText = `${k.nama}`;
                 dropdownTukar.appendChild(optTukar);
@@ -707,7 +799,7 @@
             logPengajuan = logPengajuan.filter(item => item.karyawanId !== id && item.gantiKaryawanId !== id);
             listKaryawan = listKaryawan.filter(k => k.id !== id);
             if (karyawanAktifId === id) karyawanAktifId = listKaryawan.length > 0 ? listKaryawan[0].id : null;
-            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog();
+            cancelEditKaryawan(); saveData(); updateKomponenKaryawan(); renderCalendar(); renderLog(); updateStandbyWidget();
         }
     }
 
@@ -747,7 +839,6 @@
             
             const cell = document.createElement('div'); cell.className = 'day-cell';
 
-            // Menghitung jenis Shift dengan melihat modifikasi manual harian, jika tidak ada fallback ke riwayatPola / base pola
             let tipeShiftId = user.modifikasi[stringTanggal] || hitungShiftUserObj(tanggalTarget, user);
             
             const namaLibur = tanggalMerah2026[stringTanggal];
@@ -809,7 +900,6 @@
         }
     }
 
-    // FUNGSI MENYIMPAN DATA (POST) KE GOOGLE SPREADSHEET REALTIME
     function saveData() {
         localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
         localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
@@ -835,7 +925,6 @@
         .catch(error => console.error("Gagal sinkronisasi data ke Google Sheet:", error));
     }
 
-    // FUNGSI MEMUAT DATA AWAL (GET) DARI GOOGLE SPREADSHEET 
     function muatDataDariGoogleSheet() {
         fetch(URL_WEB_APP)
         .then(response => response.json())
@@ -863,18 +952,19 @@
                 renderCalendar(); 
                 renderLog(); 
                 updateUIMode();
+                updateStandbyWidget();
                 console.log("Database Google Spreadsheet berhasil dimuat.");
             }
         })
         .catch(error => {
             console.error("Gagal terhubung ke Google Sheet, menggunakan cadangan lokal:", error);
-            // Fallback rendering lokal jika koneksi terputus
             muatFormGlobal(); 
             renderLegend(); 
             updateKomponenKaryawan(); 
             renderCalendar(); 
             renderLog(); 
             updateUIMode();
+            updateStandbyWidget();
         });
     }
 
@@ -894,7 +984,7 @@
             karyawanAktifId = id;
             document.getElementById('form-karyawan').reset();
         }
-        saveData(); updateKomponenKaryawan(); renderCalendar();
+        saveData(); updateKomponenKaryawan(); renderCalendar(); updateStandbyWidget();
     });
 
     document.getElementById('form-kegiatan').addEventListener('submit', function(e) {
@@ -915,7 +1005,6 @@
         let polaBaru = "";
         let jamStart = "", jamEnd = "";
 
-        // Hapus & Rollback data lama jika sedang dalam mode Edit
         if (editLogId) {
             if (!isAdmin) { alert("Maaf, mengedit log yang sudah masuk membutuhkan hak akses Admin."); return; }
             const dataLama = logPengajuan.find(item => item.id === editLogId);
@@ -934,7 +1023,6 @@
 
                     if(userLama.infoLembur) delete userLama.infoLembur[dataLama.tanggal];
                     
-                    // Rollback target user (jika melibatkan karyawan lain)
                     if (dataLama.jenis === 'Tukar' && (dataLama.tipeTukar === 'karyawan_1hari' || dataLama.tipeTukar === 'karyawan_permanen') && dataLama.gantiKaryawanId) {
                         const targetLama = listKaryawan.find(k => k.id === dataLama.gantiKaryawanId);
                         if (targetLama) {
@@ -950,7 +1038,6 @@
             }
         }
 
-        // --- PEMROSESAN LOGIKA BERDASARKAN JENIS ---
         if (jenis === 'Tukar') {
             tipeTukar = document.getElementById('tipe-tukar').value;
             
@@ -1030,7 +1117,7 @@
             tipeTukar, polaBaru
         });
 
-        saveData(); renderCalendar(); renderLog();
+        saveData(); renderCalendar(); renderLog(); updateStandbyWidget();
         cancelEditKegiatan();
         alert("Data berhasil tersimpan dan kalender terkalibrasi!");
     });
@@ -1122,7 +1209,7 @@
                 if(user.infoLembur) delete user.infoLembur[item.tanggal]; 
             }
             logPengajuan = logPengajuan.filter(log => log.id !== id);
-            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog();
+            cancelEditKegiatan(); saveData(); renderCalendar(); renderLog(); updateStandbyWidget();
         }
     }
 
@@ -1161,7 +1248,8 @@
         if (!k.riwayatPola) k.riwayatPola = {};
     });
 
-    // Jalankan pemuatan otomatis dari Google Spreadsheet saat web dibuka
+    // Panggil Waktu Internet Google dan Data Google Spreadsheet saat pertama kali dibuka
+    sinkronkanWaktuInternetGoogle();
     muatDataDariGoogleSheet();
 </script>
 
