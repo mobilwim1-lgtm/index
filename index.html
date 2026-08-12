@@ -100,7 +100,7 @@
             padding: 12px 16px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
         .team-label {
             font-size: 13px;
@@ -108,15 +108,18 @@
             font-weight: 600;
         }
         .team-person {
-            font-size: 18px;
+            font-size: 15px;
             font-weight: bold;
             color: #fde047;
+            margin-top: 4px;
+            line-height: 1.4;
         }
         .team-shift-info {
             font-size: 11px;
             color: #93c5fd;
             margin-top: 2px;
             white-space: pre-line;
+            text-align: right;
         }
         
         .btn-whatsapp {
@@ -311,7 +314,7 @@
                     <div class="team-label">Mayora Ciawi A</div>
                     <div class="team-person" id="standby-name-team-a">Memuat Data...</div>
                 </div>
-                <div style="text-align: right;">
+                <div>
                     <div class="team-shift-info" id="standby-shift-team-a">--</div>
                 </div>
             </div>
@@ -322,7 +325,7 @@
                     <div class="team-label">Mayora Ciawi B</div>
                     <div class="team-person" id="standby-name-team-b">Memuat Data...</div>
                 </div>
-                <div style="text-align: right;">
+                <div>
                     <div class="team-shift-info" id="standby-shift-team-b">--</div>
                 </div>
             </div>
@@ -664,6 +667,9 @@
         { id: "k8", nama: "Agam", team: "Mayora Ciawi B", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }
     ];
 
+    const targetTeamA = ["Fred", "Anam", "Randy", "Danu"];
+    const targetTeamB = ["Adlin", "Rizky", "Rulli", "Agam"];
+
     const tanggalMerah2026 = {
         "2026-05-01": "Hari Buruh Internasional", "2026-05-14": "Kenaikan Yesus Kristus",
         "2026-05-27": "Hari Raya Waisak / Idul Adha", "2026-06-01": "Hari Lahir Pancasila",
@@ -723,49 +729,39 @@
         if (hour >= 15 && hour < 23) targetShift = "Sore";
         else if (hour >= 23 || hour < 7) targetShift = "Malam";
 
-        let standbyA = null, standbyB = null;
+        let standbyA = [];
+        let standbyB = [];
+        let shiftInfoA = "-", shiftInfoB = "-";
 
         for (let user of listKaryawan) {
             let detail = getKaryawanShiftDetail(user, todayInternetDate);
-            let isTeamA = user.team === "Mayora Ciawi A" || user.nama.includes("Mayora A");
-            let isTeamB = user.team === "Mayora Ciawi B" || user.nama.includes("Mayora B");
+            let cleanName = user.nama.replace(/\s*\(Mayora [AB]\)/i, '').trim();
 
             if (detail.key === targetShift) {
-                if (isTeamA && !standbyA) standbyA = { user, detail };
-                if (isTeamB && !standbyB) standbyB = { user, detail };
+                if (targetTeamA.includes(cleanName)) {
+                    standbyA.push(cleanName);
+                    shiftInfoA = `${detail.nama}\n(${detail.jam})`;
+                }
+                if (targetTeamB.includes(cleanName)) {
+                    standbyB.push(cleanName);
+                    shiftInfoB = `${detail.nama}\n(${detail.jam})`;
+                }
             }
         }
 
-        if (!standbyA) {
-            let userA = listKaryawan.find(u => u.team === "Mayora Ciawi A" || u.nama.includes("Mayora A"));
-            if(userA) standbyA = { user: userA, detail: getKaryawanShiftDetail(userA, todayInternetDate) };
-        }
-        if (!standbyB) {
-            let userB = listKaryawan.find(u => u.team === "Mayora Ciawi B" || u.nama.includes("Mayora B"));
-            if(userB) standbyB = { user: userB, detail: getKaryawanShiftDetail(userB, todayInternetDate) };
-        }
+        const strA = standbyA.length > 0 ? standbyA.join(", ") : "Tidak ada standby";
+        const strB = standbyB.length > 0 ? standbyB.join(", ") : "Tidak ada standby";
 
         document.getElementById('online-date-display').innerText = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
 
-        if (standbyA) {
-            document.getElementById('standby-name-team-a').innerText = standbyA.user.nama.replace(' (Mayora A)', '');
-            document.getElementById('standby-shift-team-a').innerText = `${standbyA.detail.nama}\n(${standbyA.detail.jam})`;
-            standbyDataToday.teamA = {
-                nama: standbyA.user.nama.replace(' (Mayora A)', ''),
-                shift: standbyA.detail.nama,
-                jam: standbyA.detail.jam
-            };
-        }
+        document.getElementById('standby-name-team-a').innerText = strA;
+        document.getElementById('standby-shift-team-a').innerText = shiftInfoA;
+        
+        document.getElementById('standby-name-team-b').innerText = strB;
+        document.getElementById('standby-shift-team-b').innerText = shiftInfoB;
 
-        if (standbyB) {
-            document.getElementById('standby-name-team-b').innerText = standbyB.user.nama.replace(' (Mayora B)', '');
-            document.getElementById('standby-shift-team-b').innerText = `${standbyB.detail.nama}\n(${standbyB.detail.jam})`;
-            standbyDataToday.teamB = {
-                nama: standbyB.user.nama.replace(' (Mayora B)', ''),
-                shift: standbyB.detail.nama,
-                jam: standbyB.detail.jam
-            };
-        }
+        standbyDataToday.teamA = { nama: strA, shift: shiftInfoA.split('\n')[0], jam: shiftInfoA.split('\n')[1] || '' };
+        standbyDataToday.teamB = { nama: strB, shift: shiftInfoB.split('\n')[0], jam: shiftInfoB.split('\n')[1] || '' };
     }
 
     function shareToWhatsApp() {
