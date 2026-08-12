@@ -18,6 +18,7 @@
             --danger: #ef4444;
             --warning: #f59e0b;
             --success: #10b981;
+            --wa-green: #25D366;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -50,39 +51,94 @@
             text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
 
-        .standby-card {
-            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+        /* WIDGET TEAM STANDBY LANDSCAPE */
+        .standby-card-landscape {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
             color: white;
-            padding: 15px 20px;
+            padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+            box-shadow: 0 4px 12px rgba(49, 46, 129, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .standby-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 10px;
         }
         .standby-title {
-            font-size: 13px;
+            font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            opacity: 0.9;
-            font-weight: 600;
-        }
-        .standby-name {
-            font-size: 22px;
             font-weight: bold;
-            color: #fde047;
-            margin-top: 2px;
+            color: #38bdf8;
         }
         .time-badge {
             background: rgba(255, 255, 255, 0.15);
-            padding: 8px 14px;
+            padding: 6px 14px;
             border-radius: 8px;
             font-size: 13px;
             text-align: right;
             backdrop-filter: blur(4px);
+        }
+        .teams-landscape-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        @media (max-width: 768px) {
+            .teams-landscape-grid { grid-template-columns: 1fr; }
+        }
+        .team-box {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .team-label {
+            font-size: 13px;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+        .team-person {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fde047;
+        }
+        .team-shift-info {
+            font-size: 11px;
+            color: #93c5fd;
+            margin-top: 2px;
+        }
+        
+        .btn-whatsapp {
+            background-color: var(--wa-green);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);
+            margin-top: 5px;
+            width: 100%;
+        }
+        .btn-whatsapp:hover {
+            background-color: #1eb956;
+            transform: translateY(-1px);
         }
 
         .footer-watermark {
@@ -238,16 +294,44 @@
         🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.1 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
     </div>
 
-    <!-- WIDGET TEAM STANDBY -->
-    <div class="standby-card">
-        <div>
-            <div class="standby-title">⚡ Team Standby Saat Ini</div>
-            <div class="standby-name" id="standby-person-name">Memuat Data...</div>
+    <!-- WIDGET TEAM STANDBY LANDSCAPE -->
+    <div class="standby-card-landscape">
+        <div class="standby-header">
+            <div class="standby-title">⚡ Roaster Team Standby Hari Ini</div>
+            <div class="time-badge">
+                <span id="online-date-display" style="font-weight: bold;">-- / -- / ----</span>
+            </div>
         </div>
-        <div class="time-badge">
-            <div id="online-date-display" style="font-weight: bold;">-- / -- / ----</div>
-            <div id="online-shift-display" style="opacity: 0.8; font-size: 11px;">Mengecek Shift Internet...</div>
+
+        <div class="teams-landscape-grid">
+            <!-- Team Mayora Ciawi A -->
+            <div class="team-box">
+                <div>
+                    <div class="team-label">Mayora Ciawi A</div>
+                    <div class="team-person" id="standby-name-team-a">Memuat Data...</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="team-shift-info" id="standby-shift-team-a">--</div>
+                </div>
+            </div>
+
+            <!-- Team Mayora Ciawi B -->
+            <div class="team-box">
+                <div>
+                    <div class="team-label">Mayora Ciawi B</div>
+                    <div class="team-person" id="standby-name-team-b">Memuat Data...</div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="team-shift-info" id="standby-shift-team-b">--</div>
+                </div>
+            </div>
         </div>
+
+        <!-- Tombol Share WA -->
+        <button class="btn-whatsapp" onclick="shareToWhatsApp()">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            Bagikan Jadwal Standby Hari ini ke WhatsApp
+        </button>
     </div>
 
     <div class="admin-bar">
@@ -284,7 +368,7 @@
         </div>
 
         <div>
-            <!-- KELOLA KARYAWAN DENGAN OPTION SHIFT 1, 2, 3 DAN SINKRONISASI GOOGLE -->
+            <!-- KELOLA KARYAWAN -->
             <div class="card" id="card-kelola-karyawan">
                 <div class="readonly-overlay" id="overlay-karyawan"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
                 <h2 id="form-karyawan-title">Kelola Karyawan</h2>
@@ -570,14 +654,14 @@
     };
 
     const defaultKaryawan = [
-        { id: "k1", nama: "Fred (Mayora A)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k2", nama: "Anam (Mayora A)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k3", nama: "Randy (Mayora A)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k4", nama: "Danu (Mayora A)", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k5", nama: "Adlin (Mayora B)", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k6", nama: "Rizky (Mayora B)", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k7", nama: "Rulli (Mayora B)", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
-        { id: "k8", nama: "Agam (Mayora B)", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }
+        { id: "k1", nama: "Fred", team: "Mayora Ciawi A", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k2", nama: "Anam", team: "Mayora Ciawi A", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k3", nama: "Randy", team: "Mayora Ciawi A", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k4", nama: "Danu", team: "Mayora Ciawi A", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k5", nama: "Adlin", team: "Mayora Ciawi B", urutanPola: 0, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k6", nama: "Rizky", team: "Mayora Ciawi B", urutanPola: 2, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k7", nama: "Rulli", team: "Mayora Ciawi B", urutanPola: 4, modifikasi: {}, infoLembur: {}, riwayatPola: {} },
+        { id: "k8", nama: "Agam", team: "Mayora Ciawi B", urutanPola: 6, modifikasi: {}, infoLembur: {}, riwayatPola: {} }
     ];
 
     const tanggalMerah2026 = {
@@ -595,7 +679,12 @@
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 
-    // INTERNET TIME GOOGLE SINKRONISASI
+    // Data Standby Terkini untuk WhatsApp Share
+    let standbyDataToday = {
+        teamA: { nama: "-", shift: "-", jam: "-" },
+        teamB: { nama: "-", shift: "-", jam: "-" }
+    };
+
     function sinkronkanWaktuInternetGoogle() {
         fetch('https://worldtimeapi.org/api/ip')
             .then(res => res.json())
@@ -615,26 +704,79 @@
             });
     }
 
-    function updateStandbyWidget() {
-        const strToday = `${todayInternetDate.getFullYear()}-${String(todayInternetDate.getMonth() + 1).padStart(2, '0')}-${String(todayInternetDate.getDate()).padStart(2, '0')}`;
-        const hour = todayInternetDate.getHours();
+    function getKaryawanShiftDetail(user, targetDate) {
+        const strDate = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+        let shiftKey = user.modifikasi[strDate] || hitungShiftUserObj(targetDate, user);
         
+        let shiftNama = configShift[shiftKey] ? configShift[shiftKey].nama : shiftKey;
+        let shiftJam = configShift[shiftKey] ? configShift[shiftKey].jam : "-";
+        
+        if (shiftKey === 'Lembur' && user.infoLembur && user.infoLembur[strDate]) {
+            shiftJam = user.infoLembur[strDate];
+        }
+
+        return { key: shiftKey, nama: shiftNama, jam: shiftJam };
+    }
+
+    function updateStandbyWidget() {
+        const hour = todayInternetDate.getHours();
         let targetShift = "Pagi";
         if (hour >= 15 && hour < 23) targetShift = "Sore";
         else if (hour >= 23 || hour < 7) targetShift = "Malam";
 
-        let standbyUser = null;
+        let standbyA = null, standbyB = null;
+
+        // Cari Standby Team A & B (Hanya 1 nama yang bertugas shift saat ini)
         for (let user of listKaryawan) {
-            let shiftToday = user.modifikasi[strToday] || hitungShiftUserObj(todayInternetDate, user);
-            if (shiftToday === targetShift) {
-                standbyUser = user.nama;
-                break;
+            let detail = getKaryawanShiftDetail(user, todayInternetDate);
+            let isTeamA = user.team === "Mayora Ciawi A" || user.nama.includes("Mayora A");
+            let isTeamB = user.team === "Mayora Ciawi B" || user.nama.includes("Mayora B");
+
+            if (detail.key === targetShift) {
+                if (isTeamA && !standbyA) standbyA = { user, detail };
+                if (isTeamB && !standbyB) standbyB = { user, detail };
             }
         }
 
+        // Jika tidak ada yang shift saat ini, ambil orang pertama yang bertugas di tim
+        if (!standbyA) {
+            let userA = listKaryawan.find(u => u.team === "Mayora Ciawi A" || u.nama.includes("Mayora A"));
+            if(userA) standbyA = { user: userA, detail: getKaryawanShiftDetail(userA, todayInternetDate) };
+        }
+        if (!standbyB) {
+            let userB = listKaryawan.find(u => u.team === "Mayora Ciawi B" || u.nama.includes("Mayora B"));
+            if(userB) standbyB = { user: userB, detail: getKaryawanShiftDetail(userB, todayInternetDate) };
+        }
+
         document.getElementById('online-date-display').innerText = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
-        document.getElementById('online-shift-display').innerText = `Shift Standby: ${configShift[targetShift].nama}`;
-        document.getElementById('standby-person-name').innerText = standbyUser ? `👤 ${standbyUser}` : "Tidak Ada Standby";
+
+        // Update UI Team A
+        if (standbyA) {
+            document.getElementById('standby-name-team-a').innerText = standbyA.user.nama.replace(' (Mayora A)', '');
+            document.getElementById('standby-shift-team-a').innerText = `${standbyA.detail.nama}\n(${standbyA.detail.jam})`;
+            standbyDataToday.teamA = {
+                nama: standbyA.user.nama.replace(' (Mayora A)', ''),
+                shift: standbyA.detail.nama,
+                jam: standbyA.detail.jam
+            };
+        }
+
+        // Update UI Team B
+        if (standbyB) {
+            document.getElementById('standby-name-team-b').innerText = standbyB.user.nama.replace(' (Mayora B)', '');
+            document.getElementById('standby-shift-team-b').innerText = `${standbyB.detail.nama}\n(${standbyB.detail.jam})`;
+            standbyDataToday.teamB = {
+                nama: standbyB.user.nama.replace(' (Mayora B)', ''),
+                shift: standbyB.detail.nama,
+                jam: standbyB.detail.jam
+            };
+        }
+    }
+
+    function shareToWhatsApp() {
+        const pesan = `Dear All Team \nBerikut Jadwal Team Standby Hari ini :\nMayora Ciawi A : ${standbyDataToday.teamA.nama} ${standbyDataToday.teamA.shift}, ${standbyDataToday.teamA.jam}\nMayora Ciawi B : ${standbyDataToday.teamB.nama} ${standbyDataToday.teamB.shift}, ${standbyDataToday.teamB.jam}\n\nTerimakasih`;
+        const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
+        window.open(urlWA, '_blank');
     }
 
     function hitungShiftUserObj(tanggal, user) {
@@ -709,7 +851,6 @@
         alert("Konfigurasi global shift berhasil disimpan!");
     }
 
-    // UPDATE TABEL KELOLA KARYAWAN SESUAI SHIFT 1, 2, 3
     function updateKomponenKaryawan() {
         const pilihKaryawan = document.getElementById('pilih-karyawan');
         const inputKaryawan = document.getElementById('input-karyawan');
@@ -908,7 +1049,6 @@
         }
     }
 
-    // REALTIME GOOGLE SINKRONISASI
     function saveData() {
         localStorage.setItem('roster_2026_karyawan_v6', JSON.stringify(listKaryawan));
         localStorage.setItem('roster_2026_log_v6', JSON.stringify(logPengajuan));
@@ -975,7 +1115,6 @@
         });
     }
 
-    // FORM TAMBAH/EDIT KARYAWAN REALTIME KE GOOGLE
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
