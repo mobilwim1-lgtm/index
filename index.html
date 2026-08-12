@@ -236,7 +236,7 @@
 
 <div class="container">
     <div class="app-signature" id="top-author-watermark">
-        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.1 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
+        🛡️ SISTEM JADWAL ROSTER ROSTERING & LEMBUR KARYAWAN v6.2 — <span>ORIGINAL DEVELOPED BY Rizky SIL 1806</span> ALL RIGHTS RESERVED
     </div>
 
     <!-- WIDGET TEAM STANDBY -->
@@ -294,12 +294,20 @@
                     <label for="nama-baru" id="label-nama-karyawan">Nama Karyawan:</label>
                     <input type="text" id="nama-baru" placeholder="Contoh: Perdana" required>
                     
-                    <label for="pola-start">Posisi Siklus Pada 17 Mei 2026:</label>
+                    <label for="pola-start" id="label-pola-start">Shift / Siklus Hari Ini (Waktu Realtime Google):</label>
                     <select id="pola-start">
-                        <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
-                        <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
-                        <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
-                        <option value="6">Hari ke-7: Off / Libur Pertama</option>
+                        <!-- SHIFT 1 (PAGI) -->
+                        <option value="0">Shift 1 Pagi - Hari ke-1</option>
+                        <option value="1">Shift 1 Pagi - Hari ke-2</option>
+                        <!-- SHIFT 2 (SORE) -->
+                        <option value="2">Shift 2 Sore - Hari ke-1</option>
+                        <option value="3">Shift 2 Sore - Hari ke-2</option>
+                        <!-- SHIFT 3 (MALAM) -->
+                        <option value="4">Shift 3 Malam - Hari ke-1</option>
+                        <option value="5">Shift 3 Malam - Hari ke-2</option>
+                        <!-- OFF (LIBUR) -->
+                        <option value="6">Off (Libur) - Hari ke-1</option>
+                        <option value="7">Off (Libur) - Hari ke-2</option>
                     </select>
                     
                     <button type="submit" id="btn-submit-karyawan" class="btn-submit" style="background: var(--primary);">+ Tambah Karyawan</button>
@@ -312,7 +320,7 @@
                         <thead>
                             <tr>
                                 <th>Nama</th>
-                                <th>Posisi Siklus</th>
+                                <th>Siklus Saat Ini</th>
                                 <th style="text-align: center; width: 100px;" class="admin-action-header">Aksi</th>
                             </tr>
                         </thead>
@@ -375,10 +383,14 @@
                         <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
                             <select id="pola-baru-tukar">
-                                <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
-                                <option value="2">Hari ke-3: Shift 2 Sore Pertama</option>
-                                <option value="4">Hari ke-5: Shift 3 Malam Pertama</option>
-                                <option value="6">Hari ke-7: Off / Libur Pertama</option>
+                                <option value="0">Shift 1 Pagi - Hari ke-1</option>
+                                <option value="1">Shift 1 Pagi - Hari ke-2</option>
+                                <option value="2">Shift 2 Sore - Hari ke-1</option>
+                                <option value="3">Shift 2 Sore - Hari ke-2</option>
+                                <option value="4">Shift 3 Malam - Hari ke-1</option>
+                                <option value="5">Shift 3 Malam - Hari ke-2</option>
+                                <option value="6">Off (Libur) - Hari ke-1</option>
+                                <option value="7">Off (Libur) - Hari ke-2</option>
                             </select>
                             <p style="font-size: 11px; color: #b91c1c; margin-top: 4px; font-weight:bold;">*Kalender Anda akan berganti mengikuti urutan siklus posisi ini seterusnya.</p>
                         </div>
@@ -554,6 +566,13 @@
     const anchorDate = new Date(2026, 4, 17);
     const polaShiftBase = ["Pagi", "Pagi", "Sore", "Sore", "Malam", "Malam", "Libur", "Libur"];
 
+    const labelSiklusFull = [
+        "Shift 1 Pagi (H1)", "Shift 1 Pagi (H2)",
+        "Shift 2 Sore (H1)", "Shift 2 Sore (H2)",
+        "Shift 3 Malam (H1)", "Shift 3 Malam (H2)",
+        "Off Libur (H1)", "Off Libur (H2)"
+    ];
+
     const defaultShiftConfig = {
         Pagi: { nama: "Shift 1 Pagi", jam: "07:00 - 15:00 WIB" },
         Sore: { nama: "Shift 2 Sore", jam: "15:00 - 23:00 WIB" },
@@ -599,6 +618,7 @@
                     todayInternetDate = new Date(data.datetime);
                     // Sesuaikan tampilan Kalender ke Bulan & Tahun Berjalan dari Internet
                     currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
+                    updateLabelRealtimeGoogle();
                     updateStandbyWidget();
                     renderCalendar();
                 }
@@ -607,9 +627,18 @@
                 console.log("Menggunakan fallback jam perangkat lokal:", err);
                 todayInternetDate = new Date();
                 currentDate = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), 1);
+                updateLabelRealtimeGoogle();
                 updateStandbyWidget();
                 renderCalendar();
             });
+    }
+
+    function updateLabelRealtimeGoogle() {
+        const strTgl = `${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]} ${todayInternetDate.getFullYear()}`;
+        const lblPola = document.getElementById('label-pola-start');
+        if (lblPola) {
+            lblPola.innerHTML = `Posisi Shift / Siklus Hari Ini (<b>${strTgl}</b> Realtime Google):`;
+        }
     }
 
     // UPDATE TAMPILAN TEAM STANDBY REALTIME (HANYA 1 NAMA SESUAI SHIFT HARI INI)
@@ -655,6 +684,33 @@
         let index = (selisihHari + polaAktif) % 8;
         if (index < 0) index += 8;
         return polaShiftBase[index];
+    }
+
+    function getIndexSiklusRealtime(tanggalTarget, user) {
+        let polaAktif = parseInt(user.urutanPola);
+        if (user.riwayatPola) {
+            const stringTanggal = `${tanggalTarget.getFullYear()}-${String(tanggalTarget.getMonth() + 1).padStart(2, '0')}-${String(tanggalTarget.getDate()).padStart(2, '0')}`;
+            let riwayatDates = Object.keys(user.riwayatPola).sort();
+            for (let rDate of riwayatDates) {
+                if (stringTanggal >= rDate) {
+                    polaAktif = parseInt(user.riwayatPola[rDate]);
+                }
+            }
+        }
+        const selisihWaktu = tanggalTarget.getTime() - anchorDate.getTime();
+        const selisihHari = Math.floor(selisihWaktu / (1000 * 60 * 60 * 24));
+        let index = (selisihHari + polaAktif) % 8;
+        if (index < 0) index += 8;
+        return index;
+    }
+
+    function hitungPolaAwalDariHariIni(posisiDipilihToday) {
+        const todayReset = new Date(todayInternetDate.getFullYear(), todayInternetDate.getMonth(), todayInternetDate.getDate());
+        const anchorReset = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), anchorDate.getDate());
+        const selisihHari = Math.floor((todayReset.getTime() - anchorReset.getTime()) / (1000 * 60 * 60 * 24));
+        let baseOffset = (parseInt(posisiDipilihToday) - selisihHari) % 8;
+        if (baseOffset < 0) baseOffset += 8;
+        return baseOffset;
     }
 
     function getActiveOffset(dateObj, user) {
@@ -731,12 +787,13 @@
             let opt2 = document.createElement('option'); opt2.value = k.id; opt2.innerText = k.nama;
             inputKaryawan.appendChild(opt2);
 
-            let teksSiklus = k.urutanPola==0?"Pagi ke-1":k.urutanPola==2?"Sore ke-1":k.urutanPola==4?"Malam ke-1":"Libur ke-1";
+            let idxRealtime = getIndexSiklusRealtime(todayInternetDate, k);
+            let teksSiklus = labelSiklusFull[idxRealtime];
             let tr = document.createElement('tr');
             
             let tombolAksi = isAdmin ? `
                 <td class="action-buttons">
-                    <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${k.urutanPola}')">Edit</button>
+                    <button class="btn-warning" onclick="pemicuEditKaryawan('${k.id}', '${k.nama}', '${idxRealtime}')">Edit</button>
                     <button class="btn-danger" onclick="hapusKaryawan('${k.id}')">Hapus</button>
                 </td>
             ` : '';
@@ -772,11 +829,11 @@
         });
     }
 
-    function pemicuEditKaryawan(id, nama, urutanPola) {
+    function pemicuEditKaryawan(id, nama, idxSiklusToday) {
         if (!isAdmin) return;
         document.getElementById('edit-id-karyawan').value = id;
         document.getElementById('nama-baru').value = nama;
-        document.getElementById('pola-start').value = urutanPola;
+        document.getElementById('pola-start').value = idxSiklusToday;
         document.getElementById('form-karyawan-title').innerText = "Edit Nama & Siklus Karyawan";
         document.getElementById('btn-submit-karyawan').innerText = "Simpan Perubahan";
         document.getElementById('btn-submit-karyawan').style.background = "var(--warning)";
@@ -786,6 +843,7 @@
     function cancelEditKaryawan() {
         document.getElementById('edit-id-karyawan').value = "";
         document.getElementById('nama-baru').value = "";
+        document.getElementById('pola-start').value = "0";
         document.getElementById('form-karyawan-title').innerText = "Kelola Karyawan";
         document.getElementById('btn-submit-karyawan').innerText = "+ Tambah Karyawan";
         document.getElementById('btn-submit-karyawan').style.background = "var(--primary)";
@@ -971,16 +1029,19 @@
     document.getElementById('form-karyawan').addEventListener('submit', function(e) {
         e.preventDefault(); if (!isAdmin) return;
         const nama = document.getElementById('nama-baru').value;
-        const urutanPola = document.getElementById('pola-start').value;
+        const posisiSiklusHariIni = document.getElementById('pola-start').value;
         const editId = document.getElementById('edit-id-karyawan').value;
+
+        // Hitung Offset Awal Terhadap Waktu Realtime Internet Google
+        const urutanPolaKalkulasi = hitungPolaAwalDariHariIni(posisiSiklusHariIni);
 
         if (editId) {
             const k = listKaryawan.find(item => item.id === editId);
-            if(k) { k.nama = nama; k.urutanPola = urutanPola; }
+            if(k) { k.nama = nama; k.urutanPola = urutanPolaKalkulasi; }
             cancelEditKaryawan();
         } else {
             const id = 'k_' + Date.now();
-            listKaryawan.push({ id, nama, urutanPola, modifikasi: {}, infoLembur: {}, riwayatPola: {} });
+            listKaryawan.push({ id, nama, urutanPola: urutanPolaKalkulasi, modifikasi: {}, infoLembur: {}, riwayatPola: {} });
             karyawanAktifId = id;
             document.getElementById('form-karyawan').reset();
         }
@@ -1087,7 +1148,7 @@
                 user.riwayatPola[tanggal] = newOffset;
                 polaBaru = polaTargetPadaTanggalItu;
                 
-                let namaPola = polaBaru==0?'Pagi Pertama':polaBaru==2?'Sore Pertama':polaBaru==4?'Malam Pertama':'Libur Pertama';
+                let namaPola = labelSiklusFull[polaBaru];
                 statusFinal = `Siklus ${namaPola}`;
                 infoTeks = `Mulai siklus baru dari ${namaPola} seterusnya (${keterangan})`;
             }
