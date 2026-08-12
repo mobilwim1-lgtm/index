@@ -783,6 +783,8 @@
         let standbyA = [];
         let standbyB = [];
         let shiftInfoA = "-", shiftInfoB = "-";
+        let namaShiftA = "-", jamShiftA = "-";
+        let namaShiftB = "-", jamShiftB = "-";
 
         for (let user of listKaryawan) {
             let detail = getKaryawanShiftDetail(user, todayInternetDate);
@@ -792,10 +794,14 @@
                 if (targetTeamA.includes(cleanName)) {
                     standbyA.push(cleanName);
                     shiftInfoA = `${detail.nama}\n(${detail.jam})`;
+                    namaShiftA = detail.nama;
+                    jamShiftA = detail.jam;
                 }
                 if (targetTeamB.includes(cleanName)) {
                     standbyB.push(cleanName);
                     shiftInfoB = `${detail.nama}\n(${detail.jam})`;
+                    namaShiftB = detail.nama;
+                    jamShiftB = detail.jam;
                 }
             }
         }
@@ -811,12 +817,16 @@
         document.getElementById('standby-name-team-b').innerText = strB;
         document.getElementById('standby-shift-team-b').innerText = shiftInfoB;
 
-        standbyDataToday.teamA = { nama: strA, shift: shiftInfoA.split('\n')[0], jam: shiftInfoA.split('\n')[1] || '' };
-        standbyDataToday.teamB = { nama: strB, shift: shiftInfoB.split('\n')[0], jam: shiftInfoB.split('\n')[1] || '' };
+        standbyDataToday.teamA = { nama: strA, shift: namaShiftA, jam: jamShiftA };
+        standbyDataToday.teamB = { nama: strB, shift: namaShiftB, jam: jamShiftB };
     }
 
     function shareToWhatsApp() {
-        const pesan = `Dear All Team \nBerikut Jadwal Team Standby Hari ini :\nMayora Ciawi A : ${standbyDataToday.teamA.nama} ${standbyDataToday.teamA.shift}, ${standbyDataToday.teamA.jam}\nMayora Ciawi B : ${standbyDataToday.teamB.nama} ${standbyDataToday.teamB.shift}, ${standbyDataToday.teamB.jam}\n\nTerimakasih`;
+        const selectDo = document.getElementById('select-do-person');
+        const doSelectedName = selectDo ? selectDo.value : '';
+
+        const pesan = `Dear All Team \nBerikut Jadwal Team Standby Hari ini :\nMayora Ciawi A : ${standbyDataToday.teamA.nama} , ${standbyDataToday.teamA.shift} dan ${standbyDataToday.teamA.jam}\nMayora Ciawi B : ${standbyDataToday.teamB.nama} , ${standbyDataToday.teamB.shift} dan ${standbyDataToday.teamB.jam}\nD.O     : ${doSelectedName}`;
+
         const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
         window.open(urlWA, '_blank');
     }
