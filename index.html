@@ -19,6 +19,7 @@
             --warning: #f59e0b;
             --success: #10b981;
             --wa-green: #25D366;
+            --ai-purple: #8b5cf6;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -92,6 +93,7 @@
         }
         @media (max-width: 768px) {
             .teams-landscape-grid { grid-template-columns: 1fr; }
+            .action-buttons-group { flex-direction: column; }
         }
         .team-box {
             background: rgba(255, 255, 255, 0.07);
@@ -122,6 +124,12 @@
             text-align: right;
         }
         
+        .action-buttons-group {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
         .btn-whatsapp {
             background-color: var(--wa-green);
             color: white;
@@ -137,11 +145,32 @@
             font-size: 14px;
             transition: all 0.2s ease;
             box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);
-            margin-top: 5px;
-            width: 100%;
+            flex: 1;
         }
         .btn-whatsapp:hover {
             background-color: #1eb956;
+            transform: translateY(-1px);
+        }
+
+        .btn-ai-preview {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+            flex: 1;
+        }
+        .btn-ai-preview:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
             transform: translateY(-1px);
         }
 
@@ -159,6 +188,74 @@
         }
         .btn-view-do:hover {
             background-color: #7dd3fc;
+        }
+
+        /* MODAL PREVIEW AI */
+        .modal-ai-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(6px);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-ai-content {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 100%;
+            padding: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-ai-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 10px;
+        }
+        .modal-ai-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e1b4b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .close-modal {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .canvas-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .footer-watermark {
@@ -362,11 +459,35 @@
 
         <!-- Section Container untuk Tampilan View Standby -->
         <div id="view-standby-container" style="display: block;">
-            <!-- Tombol Share WA -->
-            <button class="btn-whatsapp" onclick="shareToWhatsApp()">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                Bagikan Jadwal Standby Hari ini ke WhatsApp
-            </button>
+            <div class="action-buttons-group">
+                <!-- Tombol Share WA -->
+                <button class="btn-whatsapp" onclick="shareToWhatsApp()">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    Bagikan Jadwal Standby Hari ini ke WhatsApp
+                </button>
+
+                <!-- Tombol Preview AI -->
+                <button class="btn-ai-preview" onclick="openAiPreviewModal()">
+                    ✨ Preview AI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PREVIEW AI -->
+    <div class="modal-ai-overlay" id="modal-ai">
+        <div class="modal-ai-content">
+            <div class="modal-ai-header">
+                <div class="modal-ai-title">⚡ Gemini AI Visualizer — Standby Poster Render</div>
+                <button class="close-modal" onclick="closeAiPreviewModal()">✕</button>
+            </div>
+            <div class="canvas-container">
+                <canvas id="ai-render-canvas" width="1280" height="720"></canvas>
+            </div>
+            <div style="display: flex; gap: 10px; width: 100%; justify-content: flex-end;">
+                <button style="background: #10b981; padding: 10px 20px; font-weight: bold;" onclick="downloadAiRender()">💾 Unduh Gambar (PNG)</button>
+                <button style="background: #64748b; padding: 10px 20px;" onclick="closeAiPreviewModal()">Tutup</button>
+            </div>
         </div>
     </div>
 
@@ -735,6 +856,7 @@
 
     const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const namaHari = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const namaHariLengkap = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
 
     let standbyDataToday = {
         teamA: { nama: "-", shift: "-", jam: "-" },
@@ -829,6 +951,169 @@
 
         const urlWA = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
         window.open(urlWA, '_blank');
+    }
+
+    /* FITUR AI PREVIEW VISUALIZER (CANVAS) BERSAMBUNG DARI LOGIKA & GAMBAR REFERENSI */
+    function openAiPreviewModal() {
+        document.getElementById('modal-ai').style.display = 'flex';
+        renderAiVisualizerPoster();
+    }
+
+    function closeAiPreviewModal() {
+        document.getElementById('modal-ai').style.display = 'none';
+    }
+
+    function renderAiVisualizerPoster() {
+        const canvas = document.getElementById('ai-render-canvas');
+        const ctx = canvas.getContext('2d');
+        const selectDo = document.getElementById('select-do-person');
+        const doName = selectDo ? selectDo.value || '-' : '-';
+
+        const dayName = namaHariLengkap[todayInternetDate.getDay()];
+        const dateStr = `${dayName}, ${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()].toUpperCase()} ${todayInternetDate.getFullYear()}`;
+
+        // 1. Background Gradient Modern
+        const bgGradient = ctx.createLinearGradient(0, 0, 1280, 720);
+        bgGradient.addColorStop(0, '#e2e8f0');
+        bgGradient.addColorStop(1, '#cbd5e1');
+        ctx.fillStyle = bgGradient;
+        ctx.fillRect(0, 0, 1280, 720);
+
+        // Header CRO Banner Top
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.roundRect(540, 10, 200, 35, 8);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CRO', 640, 34);
+
+        // Title Main Banner
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = '900 36px Segoe UI, sans-serif';
+        ctx.fillText('JADWAL SHIFT STANDBY', 640, 85);
+
+        // Sub Header Perusahaan
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 22px Segoe UI, sans-serif';
+        ctx.fillText('PT SEINO INDOMOBIL LOGISTIC', 640, 120);
+
+        // White Main Board Container (Standby Table Card)
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.roundRect(240, 140, 800, 480, 16);
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset shadow
+
+        // Inner Board Header
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 22px Segoe UI, sans-serif';
+        ctx.fillText('SHIFT STANDBY', 640, 180);
+        
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 16px Segoe UI, sans-serif';
+        ctx.fillText(dateStr, 640, 205);
+
+        // Table Header Line
+        const startY = 230;
+        ctx.fillStyle = '#1e3a8a';
+        ctx.fillRect(260, startY, 760, 40);
+
+        // Table Header Columns Text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 13px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('TANGGAL (DATE)', 330, startY + 25);
+        ctx.fillText('LOKASI (LOCATION)', 470, startY + 25);
+        ctx.fillText('SHIFT STANDBY A', 630, startY + 25);
+        ctx.fillText('SHIFT STANDBY B', 790, startY + 25);
+        ctx.fillText('D.O', 950, startY + 25);
+
+        // Table Grid Row
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        
+        // Horizontal Lines
+        for(let i=0; i<=5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(260, startY + 40 + (i * 65));
+            ctx.lineTo(1020, startY + 40 + (i * 65));
+            ctx.stroke();
+        }
+
+        // Vertical Lines
+        const cols = [260, 400, 540, 720, 880, 1020];
+        cols.forEach(x => {
+            ctx.beginPath();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, startY + 365);
+            ctx.stroke();
+        });
+
+        // Filling Data Row 1
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '600 13px Segoe UI, sans-serif';
+
+        // Tanggal & Lokasi
+        ctx.fillText(`${todayInternetDate.getDate()} ${namaBulan[todayInternetDate.getMonth()]}`, 330, startY + 75);
+        ctx.fillText('Mayora Ciawi', 470, startY + 75);
+
+        // Standby A Data
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = 'bold 13px Segoe UI, sans-serif';
+        ctx.fillText(standbyDataToday.teamA.nama || '-', 630, startY + 68);
+        ctx.fillStyle = '#475569';
+        ctx.font = '11px Segoe UI, sans-serif';
+        ctx.fillText(`${standbyDataToday.teamA.shift} (${standbyDataToday.teamA.jam})`, 630, startY + 86);
+
+        // Standby B Data
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = 'bold 13px Segoe UI, sans-serif';
+        ctx.fillText(standbyDataToday.teamB.nama || '-', 790, startY + 68);
+        ctx.fillStyle = '#475569';
+        ctx.font = '11px Segoe UI, sans-serif';
+        ctx.fillText(`${standbyDataToday.teamB.shift} (${standbyDataToday.teamB.jam})`, 790, startY + 86);
+
+        // D.O Data
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'bold 14px Segoe UI, sans-serif';
+        ctx.fillText(doName, 950, startY + 75);
+
+        // Decorative Ilustrasi Kartun (Placeholder Visual Gemini AI Style)
+        // Karakter SIL Kiri
+        ctx.fillStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.arc(120, 480, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Segoe UI, sans-serif';
+        ctx.fillText('DRIVER SIL', 120, 485);
+
+        // Karakter Mayora Kanan
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath();
+        ctx.arc(1160, 480, 60, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px Segoe UI, sans-serif';
+        ctx.fillText('MAYORA', 1160, 485);
+
+        // Footer Aspect Ratio Note
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 16px Segoe UI, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('WhatsApp Status (16:9) — Auto Generated by Gemini AI Engine', 640, 680);
+    }
+
+    function downloadAiRender() {
+        const canvas = document.getElementById('ai-render-canvas');
+        const link = document.createElement('a');
+        link.download = `Jadwal_Standby_AI_Render_${todayInternetDate.toISOString().slice(0,10)}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     }
 
     function hitungShiftUserObj(tanggal, user) {
