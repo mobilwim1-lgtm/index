@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Roster Shifting Karyawan (2026)</title>
+    <!-- Tambahan Library html2canvas untuk fitur convert HTML ke Image (JPG) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
         :root {
             --primary: #4f46e5;
@@ -19,7 +22,7 @@
             --warning: #f59e0b;
             --success: #10b981;
             --wa-green: #25D366;
-            --view-blue: #38bdf8; /* Warna untuk tombol VIEW */
+            --ai-purple: #8b5cf6;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -103,35 +106,11 @@
             justify-content: space-between;
             align-items: flex-start;
         }
-        .team-label {
-            font-size: 13px;
-            color: #cbd5e1;
-            font-weight: 600;
-        }
-        .team-person {
-            font-size: 15px;
-            font-weight: bold;
-            color: #fde047;
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-        .team-shift-info {
-            font-size: 11px;
-            color: #93c5fd;
-            margin-top: 2px;
-            white-space: pre-line;
-            text-align: right;
-        }
+        .team-label { font-size: 13px; color: #cbd5e1; font-weight: 600; }
+        .team-person { font-size: 15px; font-weight: bold; color: #fde047; margin-top: 4px; line-height: 1.4; }
+        .team-shift-info { font-size: 11px; color: #93c5fd; margin-top: 2px; white-space: pre-line; text-align: right; }
         
-        /* Container untuk tombol aksi (WA & VIEW) */
-        .standby-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Membagi menjadi dua kolom sama rata */
-            gap: 15px; /* Jarak antara tombol */
-            margin-top: 5px;
-        }
-
-        .btn-whatsapp, .btn-view {
+        .btn-whatsapp, .btn-preview-ai {
             color: white;
             border: none;
             padding: 10px 18px;
@@ -146,250 +125,110 @@
             transition: all 0.2s ease;
             width: 100%;
         }
+        .btn-whatsapp { background-color: var(--wa-green); box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3); }
+        .btn-whatsapp:hover { background-color: #1eb956; transform: translateY(-1px); }
+        
+        .btn-preview-ai { background-color: var(--ai-purple); box-shadow: 0 2px 6px rgba(139, 92, 246, 0.3); }
+        .btn-preview-ai:hover { background-color: #7c3aed; transform: translateY(-1px); }
 
-        .btn-whatsapp {
-            background-color: var(--wa-green);
-            box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);
-        }
-        .btn-whatsapp:hover {
-            background-color: #1eb956;
-            transform: translateY(-1px);
-        }
+        .btn-view-do { background-color: #38bdf8; color: #0f172a; border: none; padding: 5px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 12px; margin-top: 6px; transition: all 0.2s ease; }
+        .btn-view-do:hover { background-color: #7dd3fc; }
 
-        .btn-view {
-            background-color: var(--view-blue);
-            box-shadow: 0 2px 6px rgba(56, 189, 248, 0.3);
-        }
-        .btn-view:hover {
-            background-color: #7dd3fc;
-            transform: translateY(-1px);
-        }
-
-        .btn-view-do {
-            background-color: #38bdf8;
-            color: #0f172a;
-            border: none;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 6px;
-            transition: all 0.2s ease;
-        }
-        .btn-view-do:hover {
-            background-color: #7dd3fc;
-        }
-
-        .footer-watermark {
-            text-align: center;
-            margin-top: 30px;
-            padding: 15px;
-            font-size: 12px;
-            color: #64748b;
-            border-top: 1px solid #cbd5e1;
-        }
-
-        .admin-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .status-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        .footer-watermark { text-align: center; margin-top: 30px; padding: 15px; font-size: 12px; color: #64748b; border-top: 1px solid #cbd5e1; }
+        .admin-bar { display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 10px 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .status-badge.readonly { background: #fee2e2; color: #991b1b; }
         .status-badge.admin { background: #dcfce7; color: #166534; }
-
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 20px;
-        }
-        @media (max-width: 992px) {
-            .grid-layout { grid-template-columns: 1fr; }
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .readonly-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(243, 244, 246, 0.6);
-            backdrop-filter: blur(1px);
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 12px;
-        }
-        .readonly-msg {
-            background: #ffffff;
-            padding: 8px 16px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            font-size: 12px;
-            font-weight: 600;
-            color: #4b5563;
-            border: 1px solid #e5e7eb;
-        }
-
-        .controls-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
+        .grid-layout { display: grid; grid-template-columns: 1.8fr 1.2fr; gap: 20px; }
+        @media (max-width: 992px) { .grid-layout { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; position: relative; }
+        .readonly-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(243, 244, 246, 0.6); backdrop-filter: blur(1px); z-index: 10; display: flex; justify-content: center; align-items: center; border-radius: 12px; }
+        .readonly-msg { background: #ffffff; padding: 8px 16px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 12px; font-weight: 600; color: #4b5563; border: 1px solid #e5e7eb; }
+        .controls-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
         .color-box { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #ccc; }
-
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-        }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        button { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 500; }
         button:hover { opacity: 0.9; }
         button:disabled { background: #d1d5db; cursor: not-allowed; opacity: 1; }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center;
-        }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day-name { font-weight: bold; padding: 10px 0; background: #e5e7eb; border-radius: 4px; font-size: 13px;}
-        .day-cell {
-            min-height: 95px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            padding: 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: #fff;
-            position: relative;
-        }
+        .day-cell { min-height: 95px; border: 1px solid #e5e7eb; border-radius: 6px; padding: 5px; display: flex; flex-direction: column; justify-content: space-between; background: #fff; position: relative; }
         .day-num { font-weight: bold; font-size: 14px; text-align: left; }
         .day-num.red-text { color: var(--tanggal-merah); }
         .day-status { font-size: 10px; font-weight: bold; padding: 2px; border-radius: 4px; margin-top: 5px; text-align: center; line-height: 1.2;}
         .day-time { font-size: 85%; font-weight: normal; opacity: 0.8; display: block;}
         .holiday-info { font-size: 9px; color: #b91c1c; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100%; font-weight: 500;}
-
         form { display: flex; flex-direction: column; gap: 10px; }
         label { font-weight: 500; font-size: 13px; margin-bottom: -4px;}
         input, select { padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
-        
         .btn-submit { background: var(--success); color: white; font-weight: bold; margin-top: 5px;}
         .btn-danger { background: var(--danger); color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;}
         .btn-warning { background: var(--warning); color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px;}
         .btn-cancel { background: #6b7280; color: white; padding: 4px 8px; font-size: 12px; border-radius: 4px; margin-top: 5px;}
-
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
         th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
         th { background: #f9fafb; }
         .action-buttons { display: flex; gap: 4px; justify-content: center; }
-
         .flex-row { display: flex; gap: 10px; }
         .flex-row > div { flex: 1; display: flex; flex-direction: column; }
-
-        /* Gaya untuk Modal (Preview AI Simulasi) */
-        .modal {
-            display: none; /* Tersembunyi secara default */
-            position: fixed;
-            z-index: 1000; /* Di atas segalanya */
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.8); /* Latar belakang hitam transparan */
+        
+        /* Modal AI Preview Styles */
+        .modal-ai {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 9999; justify-content: center;
+            align-items: center; flex-direction: column; backdrop-filter: blur(4px);
         }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto; /* Jarak dari atas dan tengah */
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 1000px; /* Lebar maksimal */
-            position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        .ai-canvas-container {
+            width: 800px; max-width: 95vw; height: 450px;
+            background: linear-gradient(to bottom, #dbeafe, #f0f9ff);
+            position: relative; border-radius: 12px; overflow: hidden;
+            box-sizing: border-box; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            /* Background Pattern/Texture emulation */
+            background-image: radial-gradient(#93c5fd 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-
-        .close-modal {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            right: 20px;
-            top: 10px;
+        @media (max-width: 850px) {
+            .ai-canvas-container { transform: scale(0.8); }
         }
-
-        .close-modal:hover,
-        .close-modal:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
+        @media (max-width: 600px) {
+            .ai-canvas-container { transform: scale(0.45); }
         }
-
-        .modal-header {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+        .ai-cro-badge {
+            background: #1e3a8a; color: white; padding: 6px 40px;
+            border-radius: 0 0 16px 16px; position: absolute; top: 0;
+            font-weight: 900; font-size: 18px; letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .modal-body {
-            text-align: center;
+        .ai-title {
+            margin-top: 50px; font-size: 34px; font-weight: 900;
+            color: #1e3a8a; text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 2px 2px 0px white;
         }
-
-        #ai-preview-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            border: 2px solid #333;
+        .ai-title span { color: #dc2626; }
+        .ai-subtitle {
+            margin-top: -5px; font-size: 18px; font-weight: 700;
+            color: #0f172a; text-shadow: 1px 1px 0px white;
         }
-
-        .modal-footer {
-            margin-top: 20px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
-            text-align: right;
+        .ai-whiteboard {
+            background: #ffffff; border: 4px solid #cbd5e1; border-radius: 12px;
+            width: 85%; margin-top: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            padding-bottom: 20px;
+        }
+        .ai-table-title {
+            text-align: center; margin: 15px 0 10px 0; font-size: 18px; font-weight: 900;
+            color: #1e293b;
+        }
+        .ai-table {
+            width: 95%; margin: 0 auto; border-collapse: collapse; text-align: center;
+        }
+        .ai-table th { padding: 12px; border: 2px solid #cbd5e1; font-size: 13px; font-weight: 800; }
+        .ai-table td { padding: 15px; border: 2px solid #cbd5e1; font-size: 16px; font-weight: bold; color:#1e293b;}
+        .ai-footer-text {
+            position: absolute; bottom: 15px; font-weight: 800; color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); font-size: 14px;
         }
     </style>
 </head>
@@ -410,7 +249,6 @@
         </div>
 
         <div class="teams-landscape-grid">
-            <!-- Team Mayora Ciawi A -->
             <div class="team-box">
                 <div>
                     <div class="team-label">Mayora Ciawi A</div>
@@ -421,7 +259,6 @@
                 </div>
             </div>
 
-            <!-- Team Mayora Ciawi B -->
             <div class="team-box">
                 <div>
                     <div class="team-label">Mayora Ciawi B</div>
@@ -432,9 +269,8 @@
                 </div>
             </div>
 
-            <!-- Fitur D.O -->
             <div class="team-box" style="flex-direction: column; justify-content: space-between;">
-                <div>
+                <div style="width: 100%;">
                     <div class="team-label">D.O</div>
                     <select id="select-do-person" onchange="checkDoSelection()" style="margin-top: 6px; width: 100%; padding: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.9); font-weight: bold; font-size: 13px;">
                         <option value="">-- Pilih D.O --</option>
@@ -442,46 +278,22 @@
                         <option value="Jodi">Jodi</option>
                     </select>
                 </div>
-                <button id="btn-view-do" class="btn-view-do" style="display: none;" onclick="toggleStandbyView()">View</button>
+                <button id="btn-view-do" class="btn-view-do" style="display: none; width: 100%;" onclick="toggleStandbyView()">Konfirmasi DO</button>
             </div>
         </div>
 
         <!-- Section Container untuk Tampilan View Standby -->
         <div id="view-standby-container" style="display: block;">
-            <!-- Container untuk Tombol Aksi (WA & VIEW) -->
-            <div class="standby-actions">
-                <!-- Tombol Share WA -->
-                <button class="btn-whatsapp" onclick="shareToWhatsApp()">
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                <!-- Tombol Share WA Asli -->
+                <button class="btn-whatsapp" onclick="shareToWhatsApp()" style="flex: 1;">
                     <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                    WhatsApp
+                    Bagikan ke WhatsApp
                 </button>
-                
-                <!-- Tombol Preview AI (VIEW) -->
-                <button class="btn-view" onclick="openAiPreview()">
-                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                    VIEW
+                <!-- Tombol Preview AI Baru -->
+                <button class="btn-preview-ai" onclick="bukaPreviewAI()" style="flex: 1;">
+                    📷 VIEW .JPG (Preview AI)
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL untuk Preview AI (Simulasi) -->
-    <div id="ai-preview-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeAiPreview()">&times;</span>
-            <div class="modal-header">
-                <h3>Banana AI Visualizer: Tim Standby Hari Ini</h3>
-                <p style="font-size: 11px; color: #666; margin: 2px 0;">Format Ekspor: JPG — Berdasarkan data aktif terbaru.</p>
-            </div>
-            <div class="modal-body">
-                <!-- Gambar Referensi Asli yang Diunggah Digunakan di Sini -->
-                <img id="ai-preview-image" src="image_3.png" alt="Simulasi Preview Banana AI">
-            </div>
-            <div class="modal-footer">
-                <p style="font-size: 11px; color: #888; text-align: left; float: left; margin-top: 10px;">
-                    *Ini adalah simulasi visualisasi AI yang mempertahankan keaslian tampilan referensi.
-                </p>
-                <button class="btn-cancel" onclick="closeAiPreview()">Tutup</button>
             </div>
         </div>
     </div>
@@ -505,7 +317,6 @@
             <select id="pilih-karyawan" onchange="gantiKaryawanAktif()" style="font-size: 16px; padding: 5px 10px; font-weight: bold; border-color: var(--primary);">
             </select>
         </div>
-        
         <div class="legend" id="render-legend-view"></div>
     </div>
 
@@ -526,10 +337,8 @@
                 <h2 id="form-karyawan-title">Kelola Karyawan</h2>
                 <form id="form-karyawan">
                     <input type="hidden" id="edit-id-karyawan" value="">
-                    
                     <label for="nama-baru" id="label-nama-karyawan">Nama Karyawan:</label>
                     <input type="text" id="nama-baru" placeholder="Contoh: Perdana" required>
-                    
                     <label for="pola-start">Posisi Siklus Pada 17 Mei 2026:</label>
                     <select id="pola-start">
                         <option value="0">Hari ke-1: Shift 1 Pagi Pertama</option>
@@ -541,7 +350,6 @@
                         <option value="6">Hari ke-7: Off / Libur Pertama</option>
                         <option value="7">Hari ke-8: Off / Libur Kedua</option>
                     </select>
-                    
                     <button type="submit" id="btn-submit-karyawan" class="btn-submit" style="background: var(--primary);">+ Tambah Karyawan</button>
                     <button type="button" id="btn-batal-edit" class="btn-cancel" style="display:none;" onclick="cancelEditKaryawan()">Batal Perubahan</button>
                 </form>
@@ -561,14 +369,13 @@
                 </div>
             </div>
 
+            <!-- KELOLA KEGIATAN -->
             <div class="card" id="card-kelola-kegiatan">
                 <h2 id="form-kegiatan-title">Input Izin / Tukar / Lembur</h2>
                 <form id="form-kegiatan">
                     <input type="hidden" id="edit-id-log" value="">
-
                     <label for="input-karyawan">Pilih Karyawan:</label>
                     <select id="input-karyawan" onchange="sinkronisasiOpsiDropdown()" required></select>
-
                     <div class="flex-row">
                         <div>
                             <label for="jenis">Jenis Transaksi:</label>
@@ -603,7 +410,6 @@
                                 <option value="Libur">Off (Libur)</option>
                             </select>
                         </div>
-
                         <div id="tukar-karyawan" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="tukar-dengan-karyawan">Pilih Karyawan Target:</label>
                             <select id="tukar-dengan-karyawan"></select>
@@ -611,7 +417,6 @@
                                 *Kalender Anda akan otomatis menyesuaikan dengan Karyawan ini. Pola siklus kalian akan SALING BERTUKAR SETERUSNYA mulai tanggal ini.
                             </p>
                         </div>
-
                         <div id="tukar-pola-permanen" class="tukar-panel" style="margin-top: 10px; display: none;">
                             <label for="pola-baru-tukar">Jadwal pada Tanggal Ini Dimulai Sebagai:</label>
                             <select id="pola-baru-tukar">
@@ -631,14 +436,8 @@
                     <div id="lembur-opsi" style="display: none; background: #fffbeb; padding: 10px; border-radius: 6px; border: 1px solid #fef3c7; margin-top: 5px;">
                         <p style="font-size: 11px; margin-top:0; margin-bottom: 8px; color: #92400e; font-weight: bold;">*Tentukan Total Jam Kerja Hari Ini (Shift + Lembur)</p>
                         <div class="flex-row" style="margin-bottom: 8px;">
-                            <div>
-                                <label for="lembur-jam-start">Jam Masuk Kerja:</label>
-                                <input type="time" id="lembur-jam-start" value="07:00">
-                            </div>
-                            <div>
-                                <label for="lembur-jam-end">Jam Pulang Kerja:</label>
-                                <input type="time" id="lembur-jam-end" value="18:00">
-                            </div>
+                            <div><label for="lembur-jam-start">Jam Masuk Kerja:</label><input type="time" id="lembur-jam-start" value="07:00"></div>
+                            <div><label for="lembur-jam-end">Jam Pulang Kerja:</label><input type="time" id="lembur-jam-end" value="18:00"></div>
                         </div>
                         <label for="lembur-gantikan-siapa">Menggantikan Karyawan Absen? (Opsional):</label>
                         <select id="lembur-gantikan-siapa">
@@ -648,7 +447,6 @@
 
                     <label for="keterangan">Keterangan Tambahan / Alasan:</label>
                     <input type="text" id="keterangan" placeholder="Contoh: Gantikan cuti Rulli" required>
-
                     <button type="submit" id="btn-submit-kegiatan" class="btn-submit">Simpan ke Kalender</button>
                     <button type="button" id="btn-batal-kegiatan" class="btn-cancel" style="display:none;" onclick="cancelEditKegiatan()">Batal Perubahan</button>
                 </form>
@@ -656,6 +454,7 @@
         </div>
     </div>
 
+    <!-- PENGATURAN SHIFT GLOBAL -->
     <div class="card" id="card-global-shift">
         <div class="readonly-overlay" id="overlay-global"><span class="readonly-msg">🔒 Membutuhkan Akses Admin</span></div>
         <h2>⚙️ Pengaturan Global Nama & Jam Kerja Shift</h2>
@@ -663,37 +462,30 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
                 <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--warning);">
                     <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 1</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-pagi-nama" value="Shift 1 Pagi" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-pagi-jam" value="07:00 - 15:00 WIB" style="width:90%">
+                    <label>Nama Tampilan:</label><input type="text" id="g-pagi-nama" value="Shift 1 Pagi" style="margin-bottom:8px; width:90%">
+                    <label>Jam Kerja:</label><input type="text" id="g-pagi-jam" value="07:00 - 15:00 WIB" style="width:90%">
                 </div>
                 <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--sore);">
                     <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 2</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-sore-nama" value="Shift 2 Sore" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-sore-jam" value="15:00 - 23:00 WIB" style="width:90%">
+                    <label>Nama Tampilan:</label><input type="text" id="g-sore-nama" value="Shift 2 Sore" style="margin-bottom:8px; width:90%">
+                    <label>Jam Kerja:</label><input type="text" id="g-sore-jam" value="15:00 - 23:00 WIB" style="width:90%">
                 </div>
                 <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--primary);">
                     <h4 style="margin: 0 0 8px 0;">Konfigurasi Shift 3</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-malam-nama" value="Shift 3 Malam" style="margin-bottom:8px; width:90%">
-                    <label>Jam Kerja:</label>
-                    <input type="text" id="g-malam-jam" value="23:00 - 07:00 WIB" style="width:90%">
+                    <label>Nama Tampilan:</label><input type="text" id="g-malam-nama" value="Shift 3 Malam" style="margin-bottom:8px; width:90%">
+                    <label>Jam Kerja:</label><input type="text" id="g-malam-jam" value="23:00 - 07:00 WIB" style="width:90%">
                 </div>
                 <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 5px solid var(--success);">
                     <h4 style="margin: 0 0 8px 0;">Status Libur</h4>
-                    <label>Nama Tampilan:</label>
-                    <input type="text" id="g-libur-nama" value="Off (Libur)" style="margin-bottom:8px; width:90%">
-                    <label>Keterangan:</label>
-                    <input type="text" id="g-libur-jam" value="Bebas Tugas" style="width:90%">
+                    <label>Nama Tampilan:</label><input type="text" id="g-libur-nama" value="Off (Libur)" style="margin-bottom:8px; width:90%">
+                    <label>Keterangan:</label><input type="text" id="g-libur-jam" value="Bebas Tugas" style="width:90%">
                 </div>
             </div>
             <button type="button" class="btn-submit" onclick="simpanPengaturanGlobal()" style="width: 200px; margin: 15px auto 0 auto; display: block;">Simpan Jam Kerja Baru</button>
         </form>
     </div>
 
+    <!-- LOG AKTIVITAS -->
     <div class="card" id="card-log-tabel">
         <h2>Riwayat Pengajuan, Tukar Jadwal & Lembur Karyawan</h2>
         <div style="overflow-x: auto;">
@@ -716,6 +508,53 @@
         &copy; 2026 Roster Engine Shift System. Proprietary Code. Engineered and Owned Permanently by <b>Rizky SIL 1806</b>. Modifying author identity is strictly prohibited.
     </div>
 </div>
+
+<!-- ========================================== -->
+<!-- MODAL OVERLAY AI PREVIEW (VISUALISASI) -->
+<!-- ========================================== -->
+<div id="ai-preview-modal" class="modal-ai">
+    <!-- Kontainer yang akan di convert jadi JPG oleh html2canvas -->
+    <div id="ai-canvas-area" class="ai-canvas-container">
+        
+        <div class="ai-cro-badge">CRO</div>
+        
+        <h1 class="ai-title">Jadwal <span>Shift Standby</span></h1>
+        <h2 class="ai-subtitle">PT SEINO INDOMOBIL LOGISTIC</h2>
+        
+        <!-- Papan Tulis Jadwal -->
+        <div class="ai-whiteboard">
+            <div class="ai-table-title" id="ai-preview-date-title">SHIFT STANDBY<br>MONDAY, 16 OCTOBER 2023</div>
+            
+            <table class="ai-table">
+                <thead>
+                    <tr style="background: #1e3a8a; color: white;">
+                        <th>TANGGAL<br>(DATE)</th>
+                        <th>LOKASI<br>(LOCATION)</th>
+                        <th style="background: #1e3a8a;">SHIFT STANDBY<br>A</th>
+                        <th style="background: #dc2626;">SHIFT STANDBY<br>B</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="ai-date-cell">Senin, 16 Okt</td>
+                        <td>Mayora Ciawi</td>
+                        <td id="ai-shift-a-cell">08:00 - 16:00<br><span style="font-size:12px; color:#1e40af; margin-top:5px; display:inline-block;">Nama A</span></td>
+                        <td id="ai-shift-b-cell">16:00 - 00:00<br><span style="font-size:12px; color:#991b1b; margin-top:5px; display:inline-block;">Nama B</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="ai-footer-text">WhatsApp Status (16:9)</div>
+    </div>
+    
+    <!-- Tombol Kontrol Modal -->
+    <div style="margin-top: 25px; display: flex; gap: 15px; z-index: 10000;">
+        <button onclick="tutupPreviewAI()" style="background: #ef4444; padding: 12px 24px; border:none; border-radius: 8px; color:white; font-weight:bold; cursor:pointer; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">Batal Tutup</button>
+        <button onclick="unduhJPG()" style="background: #10b981; padding: 12px 24px; border:none; border-radius: 8px; color:white; font-weight:bold; cursor:pointer; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">📥 Download / Simpan .JPG</button>
+    </div>
+</div>
+
 
 <script>
     // SKRIP INTEGRITAS SECURITY HAK CIPTA
@@ -755,27 +594,68 @@
         }
     }
 
-    // Fungsi untuk Modal Preview AI
-    function openAiPreview() {
-        // Simulasi Banana AI: Dalam implementasi nyata, data standbyDataToday
-        // akan dikirim ke API Banana AI, dan API akan mengembalikan gambar .jpg.
-        // Di sini kita hanya menampilkan modal dengan gambar referensi asli
-        // seperti yang diminta: "mempertahankan keaslian tampilannya".
-        document.getElementById('ai-preview-modal').style.display = 'block';
-        console.log("Simulasi Banana AI dimulai dengan data:", standbyDataToday);
+    // ==========================================
+    // LOGIKA FITUR PREVIEW AI & DOWNLOAD JPG
+    // ==========================================
+    function bukaPreviewAI() {
+        const d = todayInternetDate;
+        
+        // Array nama hari dan bulan bahasa indonesia & inggris
+        const hariIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const hariEng = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+        const bulanIndo = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        const bulanEng = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+
+        const tgl = d.getDate();
+        const nmHariIn = hariIndo[d.getDay()];
+        const nmHariEn = hariEng[d.getDay()];
+        const blnIn = bulanIndo[d.getMonth()];
+        const blnEn = bulanEng[d.getMonth()];
+        const thn = d.getFullYear();
+
+        // Mapping Data Tanggal ke Papan Tulis
+        document.getElementById('ai-preview-date-title').innerHTML = `SHIFT STANDBY<br>${nmHariEn}, ${tgl} ${blnEn} ${thn}`;
+        document.getElementById('ai-date-cell').innerText = `${nmHariIn}, ${tgl} ${blnIn}`;
+
+        // Mapping Data Nama Karyawan & Jam
+        let namaA = standbyDataToday.teamA.nama || "-";
+        let jamA = standbyDataToday.teamA.jam !== "-" ? standbyDataToday.teamA.jam : "07:00 - 15:00 WIB";
+        document.getElementById('ai-shift-a-cell').innerHTML = `${jamA}<br><span style="font-size:13px; color:#1e40af; margin-top:6px; display:inline-block; font-weight:normal;">${namaA}</span>`;
+
+        let namaB = standbyDataToday.teamB.nama || "-";
+        let jamB = standbyDataToday.teamB.jam !== "-" ? standbyDataToday.teamB.jam : "15:00 - 23:00 WIB";
+        document.getElementById('ai-shift-b-cell').innerHTML = `${jamB}<br><span style="font-size:13px; color:#991b1b; margin-top:6px; display:inline-block; font-weight:normal;">${namaB}</span>`;
+
+        // Tampilkan Modal
+        document.getElementById('ai-preview-modal').style.display = 'flex';
     }
 
-    function closeAiPreview() {
+    function tutupPreviewAI() {
         document.getElementById('ai-preview-modal').style.display = 'none';
     }
 
-    // Menutup modal jika pengguna mengklik di luar konten modal
-    window.onclick = function(event) {
-        const modal = document.getElementById('ai-preview-modal');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
+    function unduhJPG() {
+        const elemenKanvas = document.getElementById('ai-canvas-area');
+        
+        // Menggunakan library html2canvas untuk merender HTML menjadi Gambar
+        html2canvas(elemenKanvas, { scale: 2, backgroundColor: null }).then(canvas => {
+            const link = document.createElement('a');
+            
+            // Generate Nama File Berdasarkan Tanggal
+            const d = todayInternetDate;
+            const tglString = `${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}`;
+            
+            link.download = `Jadwal_Standby_MayoraCiawi_${tglString}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.95);
+            link.click();
+            
+            tutupPreviewAI();
+        }).catch(err => {
+            alert("Terjadi kesalahan saat memproses gambar AI. Pastikan Anda terkoneksi internet untuk memuat library render.");
+            console.error(err);
+        });
     }
+    // ==========================================
 
     function updateUIMode() {
         const statusMode = document.getElementById('status-mode');
